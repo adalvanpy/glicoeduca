@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "87608193244",
+    "project_id": "glicoeduca",
+    "storage_bucket": "glicoeduca.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:87608193244:android:9eb59b84c422b6df6a4419",
+        "android_client_info": {
+          "package_name": "com.example.glicoeduca"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDgePQnWR8BZ13V633Rm44F7DzzHAHh24Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
