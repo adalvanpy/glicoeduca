@@ -1,39 +1,64 @@
+// app_theme.dart
+
 import 'package:flutter/material.dart';
 import 'text_styles.dart';
 
 class AppTheme {
-  // Cores principais
-  static const Color primaryColor = Color(0xFF2196F3);
+  // ==========================================================
+  // CORES PRINCIPAIS
+  // ==========================================================
+
+  static const Color primaryColor = Color(0xFF1E88E5);
+
   static const Color successColor = Color(0xFF22B83D);
+
   static const Color errorColor = Color(0xFFE53935);
 
-  // Textos
-  static const Color textColor = Color(0xFF222222);
-  static const Color secondaryTextColor = Color(0xFF444444);
+  // ==========================================================
+  // TEXTOS
+  // ==========================================================
 
-  // Fundo e cards
-  static const Color backgroundColor = Color(0xFFF8F9FA);
-  static const Color cardBorderColor = Color(0xFFE0E0E0);
+  static const Color textColor = Color(0xFF212121);
+
+  static const Color secondaryTextColor = Color(0xFF555555);
+
+  // ==========================================================
+  // FUNDOS E CARDS
+  // ==========================================================
+
+  static const Color backgroundColor = Color(0xFFFFFFFF);
+
+  static const Color cardBorderColor = Color(0xFFDADADA);
+
   static const Color cardSelectedColor = Color(0xFFE8F5E9);
 
   // ==========================================================
-  // CORES DOS CONTEXTOS
+  // CONTEXTOS
   // ==========================================================
 
-  static const Color breakfastColor = Color(0xFFB8E6B8);
-  static const Color morningSnackColor = Color(0xFFFFD59A);
-  static const Color lunchColor = Color(0xFFB8D8F5);
-  static const Color preWorkoutColor = Color(0xFFD5B8E8);
-  static const Color postWorkoutColor = Color(0xFFF3B8B8);
-  static const Color dinnerColor = Color(0xFFB8E6B8);
-  static const Color afternoonSnackColor = Color(0xFFFFD59A);
-  static const Color supperColor = Color(0xFFBFC8E8);
+  static const Color breakfastColor = Color(0xFFDFF5DF);
 
-  static const Color contextDefaultColor = Color(0xFFE0E0E0);
+  static const Color morningSnackColor = Color(0xFFFFF1D6);
+
+  static const Color lunchColor = Color(0xFFDDEEFF);
+
+  static const Color preWorkoutColor = Color(0xFFF2E3FF);
+
+  static const Color postWorkoutColor = Color(0xFFFFE0E0);
+
+  static const Color dinnerColor = Color(0xFFDFF5DF);
+
+  static const Color afternoonSnackColor = Color(0xFFFFF1D6);
+
+  static const Color supperColor = Color(0xFFE5E8FF);
+
+  static const Color contextDefaultColor = Color(0xFFEAEAEA);
 
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
+
+      fontFamily: 'Roboto',
 
       scaffoldBackgroundColor: backgroundColor,
 
@@ -45,8 +70,6 @@ class AppTheme {
         surface: Colors.white,
         error: errorColor,
       ),
-
-      fontFamily: 'Roboto',
 
       appBarTheme: const AppBarTheme(
         backgroundColor: Colors.transparent,
@@ -62,13 +85,13 @@ class AppTheme {
           backgroundColor: primaryColor,
           foregroundColor: Colors.white,
           elevation: 0,
-          minimumSize: const Size(double.infinity, 48),
+          minimumSize: const Size(double.infinity, 46),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8),
           ),
           textStyle: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ),
@@ -77,7 +100,7 @@ class AppTheme {
         color: Colors.white,
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(8),
           side: const BorderSide(
             color: cardBorderColor,
             width: 1,
@@ -90,7 +113,7 @@ class AppTheme {
         fillColor: Colors.white,
 
         contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
+          horizontal: 14,
           vertical: 12,
         ),
 
@@ -116,6 +139,8 @@ class AppTheme {
           ),
         ),
       ),
+
+      dividerColor: cardBorderColor,
     );
   }
 }

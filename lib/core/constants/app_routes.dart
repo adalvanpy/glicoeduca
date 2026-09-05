@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import '../../features/auth/pages/login_page.dart';
 import '../../features/auth/pages/register_page.dart';
 
-import '../../features/theory/pages/theory_page.dart';
+import '../../features/theory/pages/carbhoydrates_page.dart';
+import '../../features/theory/pages/glycemic_index_page.dart';
+import '../../features/theory/pages/glycemic_load_page.dart';
 import '../../features/options/pages/option_theory_page.dart';
 
 import '../../features/duel/controllers/duel_controller.dart';
@@ -15,7 +17,7 @@ import '../../features/quiz/pages/quiz_page.dart';
 import '../../features/quiz/pages/quiz_result_page.dart';
 import '../../features/quiz/pages/instructions_quiz_page.dart';
 
-import '../../features/foods/pages/food_page.dart';  // ← IMPORT CORRETO
+import '../../features/foods/pages/food_page.dart';
 import '../../features/nutritionist_tips/pages/nutritionist_tips_page.dart';
 
 import '../../features/profile/pages/profile_page.dart';
@@ -29,6 +31,8 @@ class AppRoutes {
 
   static const String theory = '/theory';
   static const String theoryContent = '/theory-content';
+  static const String glycemicIndex = '/glycemic-index';
+  static const String glycemicLoad = '/glycemic-load';
 
   static const String duel = '/duel';
   static const String instructionsDuel = '/instructions-duel';
@@ -36,8 +40,8 @@ class AppRoutes {
   static const String quiz = '/quiz';
   static const String quizResult = '/quiz-result';
 
-  static const String food = '/food';  // ← ROTA ADICIONADA
-  static const String nutritionistTips = '/nutritionist-tips';  // ← ROTA ADICIONADA
+  static const String food = '/food'; 
+  static const String nutritionistTips = '/nutritionist-tips';
 
   static const String profile = '/profile';
   static const String editName = '/edit-name';
@@ -58,12 +62,21 @@ class AppRoutes {
 
       case theory:
         final theoryId = settings.arguments as String?;
-        return MaterialPageRoute(
-          builder: (_) => TheoryPage(theoryId: theoryId),
-        );
+        if (theoryId == 'glycemic_index') {
+          return MaterialPageRoute(builder: (_) => const GlycemicIndexPage());
+        } else if (theoryId == 'glycemic_load') {
+          return MaterialPageRoute(builder: (_) => const GlycemicLoadPage());
+        }
+        return MaterialPageRoute(builder: (_) => const TheoryPage());
 
       case theoryContent:
         return MaterialPageRoute(builder: (_) => const TheoryPage());
+
+      case glycemicIndex:
+        return MaterialPageRoute(builder: (_) => const GlycemicIndexPage());
+
+      case glycemicLoad:
+        return MaterialPageRoute(builder: (_) => const GlycemicLoadPage());
 
       case duel:
         return MaterialPageRoute(

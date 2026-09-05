@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_routes.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/text_styles.dart';
 import '../../../core/widgets/bottom_navigation.dart';
 
@@ -14,7 +15,7 @@ class _OptionTheoryPageState extends State<OptionTheoryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppTheme.backgroundColor,
       body: SafeArea(
         child: Column(
           children: [
@@ -35,7 +36,7 @@ class _OptionTheoryPageState extends State<OptionTheoryPage> {
                       icon: Icons.science,
                       title: 'Carboidratos',
                       description: 'Entenda o que são carboidratos e sua importância para o organismo',
-                      theoryId: 'carbohydrates',
+                      route: AppRoutes.theoryContent,
                       color: const Color(0xFF4CAF50),
                     ),
                     const SizedBox(height: 16),
@@ -44,7 +45,7 @@ class _OptionTheoryPageState extends State<OptionTheoryPage> {
                       icon: Icons.speed,
                       title: 'Índice Glicêmico',
                       description: 'Saiba como os alimentos afetam os níveis de glicose no sangue',
-                      theoryId: 'glycemic_index',
+                      route: AppRoutes.glycemicIndex,
                       color: const Color(0xFFFF6B35),
                     ),
                     const SizedBox(height: 16),
@@ -53,11 +54,10 @@ class _OptionTheoryPageState extends State<OptionTheoryPage> {
                       icon: Icons.timeline,
                       title: 'Carga Glicêmica',
                       description: 'Descubra a relação entre quantidade e qualidade dos carboidratos',
-                      theoryId: 'glycemic_load',
+                      route: AppRoutes.glycemicLoad,
                       color: const Color(0xFF2196F3),
                     ),
                     const SizedBox(height: 16),
-                    // 🔥 NOVO CARD: ALIMENTOS E COMPOSIÇÕES
                     _buildOptionCard(
                       context,
                       icon: Icons.restaurant_menu,
@@ -67,7 +67,6 @@ class _OptionTheoryPageState extends State<OptionTheoryPage> {
                       color: const Color(0xFF9C27B0),
                     ),
                     const SizedBox(height: 16),
-                    // 🔥 NOVO CARD: DICAS DO NUTRICIONISTA
                     _buildOptionCard(
                       context,
                       icon: Icons.health_and_safety,
@@ -119,7 +118,7 @@ class _OptionTheoryPageState extends State<OptionTheoryPage> {
       style: TextStyle(
         fontSize: 20,
         fontWeight: FontWeight.bold,
-        color: Colors.black87,
+        color: AppTheme.textColor,
         height: 1.2,
       ),
     );
@@ -128,11 +127,7 @@ class _OptionTheoryPageState extends State<OptionTheoryPage> {
   Widget _buildSubtitle() {
     return const Text(
       'Escolha um dos temas abaixo para começar seus estudos:',
-      style: TextStyle(
-        fontSize: 14,
-        color: Colors.black54,
-        height: 1.4,
-      ),
+      style: TextStyles.description,
     );
   }
 
@@ -196,28 +191,20 @@ class _OptionTheoryPageState extends State<OptionTheoryPage> {
                 children: [
                   Text(
                     title,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
+                    style: TextStyles.sectionTitle,
                   ),
                   const SizedBox(height: 4),
                   Text(
                     description,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.black54,
-                      height: 1.3,
-                    ),
+                    style: TextStyles.bodySmall,
                   ),
                 ],
               ),
             ),
-            Icon(
+            const Icon(
               Icons.arrow_forward_ios,
               size: 18,
-              color: Colors.black26,
+              color: AppTheme.secondaryTextColor,
             ),
           ],
         ),
