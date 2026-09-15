@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_routes.dart';
 import '../../../core/theme/app_theme.dart';
@@ -19,10 +19,8 @@ class QuizResultPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 🔥 USA OS PARÂMETROS DIRETAMENTE
-    final percentage = total == 0 ? 0 : ((hits / total) * 100).round();
 
-    print('📊 QuizResultPage - Hits: $hits, Total: $total, Level: $level');
+    final percentage = total == 0 ? 0 : ((hits / total) * 100).round();
 
     return Scaffold(
       body: SafeArea(
@@ -34,11 +32,17 @@ class QuizResultPage extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Row(
-                      children: [
-                        Text('Glico', style: TextStyles.logoRed),
-                        Text('Educa', style: TextStyles.logoGreen),
-                      ],
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: RichText(
+                        text: const TextSpan(
+                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                          children: [
+                            TextSpan(text: 'Glico', style: TextStyles.logoRed),
+                            TextSpan(text: 'Educa', style: TextStyles.logoGreen),
+                          ],
+                        ),
+                      ),
                     ),
                     const SizedBox(height: 60),
                     const Icon(
@@ -96,14 +100,19 @@ class QuizResultPage extends StatelessWidget {
             AppBottomNavigation(
               currentIndex: 3,
               onItemSelected: (index) {
-                if (index == 0) {
-                  Navigator.pushReplacementNamed(context, AppRoutes.homePage);
-                } else if (index == 1) {
-                  Navigator.pushReplacementNamed(context, AppRoutes.optionTheory);
-                } else if (index == 2) {
-                  Navigator.pushReplacementNamed(context, AppRoutes.instructionsDuel);
-                } else if (index == 4) {
-                  Navigator.pushReplacementNamed(context, AppRoutes.profile);
+                switch (index) {
+                  case 0:
+                    Navigator.pushReplacementNamed(context, AppRoutes.homePage);
+                    break;
+                  case 1:
+                    Navigator.pushReplacementNamed(context, AppRoutes.optionTheory);
+                    break;
+                  case 2:
+                    Navigator.pushReplacementNamed(context, AppRoutes.instructionsDuel);
+                    break;
+                  case 4:
+                    Navigator.pushReplacementNamed(context, AppRoutes.profile);
+                    break;
                 }
               },
             ),
@@ -147,3 +156,4 @@ class QuizResultPage extends StatelessWidget {
     );
   }
 }
+

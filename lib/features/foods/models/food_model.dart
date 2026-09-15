@@ -1,10 +1,12 @@
-class FoodModel {
+﻿class FoodModel {
   final String id;
   final String name;
   final String image;
   final String category;
   final String description;
+  final double kcal;
   final double carbohydrates;
+  final String carbohydrateType;
   final double fiber;
   final double glycemicIndex;
   final String glycemicIndexClassification;
@@ -18,7 +20,9 @@ class FoodModel {
     required this.image,
     required this.category,
     required this.description,
+    required this.kcal,
     required this.carbohydrates,
+    required this.carbohydrateType,
     required this.fiber,
     required this.glycemicIndex,
     required this.glycemicIndexClassification,
@@ -37,7 +41,9 @@ class FoodModel {
       image: map['image'] ?? '',
       category: map['category'] ?? '',
       description: map['description'] ?? '',
+      kcal: (map['kcal'] ?? map['calories'] ?? 0).toDouble(),
       carbohydrates: (map['carbohydrates'] ?? 0).toDouble(),
+      carbohydrateType: map['carbohydrate_type'] ?? '',
       fiber: (map['fiber'] ?? 0).toDouble(),
       glycemicIndex: (map['glycemicIndex'] ?? 0).toDouble(),
       glycemicIndexClassification: map['glycemicIndexClassification'] ?? '',
@@ -52,7 +58,9 @@ class FoodModel {
       'name': name,
       'image': image,
       'category': category,
+      'carbohydrate_type': carbohydrateType,
       'description': description,
+      'kcal': kcal,
       'carbohydrates': carbohydrates,
       'fiber': fiber,
       'glycemicIndex': glycemicIndex,
@@ -62,5 +70,5 @@ class FoodModel {
       'grams': grams,
     };
   }
-
 }
+

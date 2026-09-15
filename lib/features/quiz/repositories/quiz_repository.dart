@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+﻿import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../models/quiz_model.dart';
 import '../../progress/models/user_quiz_progress_model.dart';
@@ -16,18 +16,16 @@ class QuizRepository {
       if (level != null && level.isNotEmpty) {
         final levelMap = _mapLevel(level);
         query = query.where('level', isEqualTo: levelMap);
-        print('🔍 Filtrando perguntas por nível: $levelMap');
+
       }
       
       final snapshot = await query.get();
-      print('📄 Total de perguntas encontradas: ${snapshot.docs.length}');
 
       final questions = snapshot.docs.map((doc) {
         final data = doc.data() as Map<String, dynamic>? ?? {};
         return QuestionModel.fromMap(data, doc.id);
       }).toList();
 
-      // 🔥 ORDENA NO CÓDIGO (já que o índice pode não estar pronto)
       questions.sort((a, b) => a.order.compareTo(b.order));
 
       if (questions.length > 10) {
@@ -37,7 +35,7 @@ class QuizRepository {
       return questions;
       
     } catch (e) {
-      print('❌ Erro ao carregar perguntas: $e');
+
       rethrow;
     }
   }
@@ -55,27 +53,16 @@ class QuizRepository {
     }
   }
 
-  // 🔥 CORRIGIDO: SALVA NA COLEÇÃO 'user_quiz_progress'
   Future<void> saveResult(UserQuizProgressModel result) async {
     try {
-      print('💾 Salvando resultado na coleção user_quiz_progress...');
-      print('   userId: ${result.userId}');
-      print('   hits: ${result.hits}');
-      print('   level: ${result.level}');
-      print('   total: ${result.total}');
-      
-      final docRef = await _firestore
-          .collection('user_quiz_progress')  // ← NOME CORRETO DA COLEÇÃO
+      await _firestore
+          .collection('user_quiz_progress')
           .add(result.toMap());
-      
-      print('✅ Resultado salvo com ID: ${docRef.id}');
-    } catch (e) {
-      print('❌ Erro ao salvar resultado: $e');
+    } catch (_) {
       rethrow;
     }
   }
 
-  // 🔥 BUSCA OS RESULTADOS DO USUÁRIO
   Future<List<UserQuizProgressModel>> getResultsByUser(String userId) async {
     try {
       final snapshot = await _firestore
@@ -89,7 +76,7 @@ class QuizRepository {
         return UserQuizProgressModel.fromMap(data, doc.id);
       }).toList();
     } catch (e) {
-      print('❌ Erro ao buscar resultados: $e');
+
       return [];
     }
   }

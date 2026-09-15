@@ -1,4 +1,5 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+﻿import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_routes.dart';
@@ -6,6 +7,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/text_styles.dart';
 import '../../../core/widgets/bottom_navigation.dart';
 import '../../contexts/models/context_model.dart';
+import '../../progress/repositories/user_progress_repository.dart';
 
 class InstructionsDuelPage extends StatefulWidget {
   const InstructionsDuelPage({super.key});
@@ -23,16 +25,50 @@ class _InstructionsDuelPageState
   List<ContextModel> _contexts = [];
 
   bool _isLoading = true;
+  bool _canAccessDuel = false;
 
   @override
   void initState() {
     super.initState();
     _loadContextsFromFirestore();
+    _checkAccess();
   }
 
-  // ============================================================
-  // CARREGAR CONTEXTOS DO FIRESTORE
-  // ============================================================
+  Future<void> _checkAccess() async {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+
+    if (userId == null || userId.isEmpty) {
+      if (!mounted) return;
+      setState(() {
+        _canAccessDuel = false;
+      });
+      return;
+    }
+
+    final progressList = await ProgressRepository().getUserProgress(userId);
+    final progressMap = {
+      for (final item in progressList) item.theoryTitle: item.progress,
+    };
+
+    const requiredTitles = [
+      'Carboidratos',
+      'Índice glicêmico',
+      'Carga glicêmica',
+      'Alimentos',
+      'Dicas de nutricionista',
+    ];
+
+    final canAccess = requiredTitles.every(
+      (title) => (progressMap[title] ?? 0.0) >= 1.0,
+    );
+
+    if (!mounted) return;
+
+    setState(() {
+      _canAccessDuel = canAccess;
+    });
+  }
+
 
   Future<void> _loadContextsFromFirestore() async {
     try {
@@ -46,10 +82,7 @@ class _InstructionsDuelPageState
           .get();
 
       final contexts = snapshot.docs.map((doc) {
-        return ContextModel.fromMap(
-          doc.data(),
-          doc.id,
-        );
+        return ContextModel.fromMap(doc.data(), doc.id);
       }).toList();
 
       if (!mounted) return;
@@ -58,22 +91,7 @@ class _InstructionsDuelPageState
         _contexts = contexts;
         _isLoading = false;
       });
-
-      print(
-        '📋 Contextos carregados: ${_contexts.length}',
-      );
-
-      for (final context in _contexts) {
-        print(
-          '   - ${context.name} '
-          '(ID: ${context.id})',
-        );
-      }
-    } catch (e) {
-      print(
-        '❌ Erro ao carregar contextos: $e',
-      );
-
+    } catch (_) {
       if (!mounted) return;
 
       setState(() {
@@ -82,137 +100,51 @@ class _InstructionsDuelPageState
     }
   }
 
-  // ============================================================
-  // COR DOS CONTEXTOS
-  // ============================================================
-
-  Color _getContextColor(String id) {
-    switch (id) {
-      case 'breakfast':
-        return AppTheme.breakfastColor;
-
-      case 'morning_snack':
-        return AppTheme.morningSnackColor;
-
-      case 'lunch':
-        return AppTheme.lunchColor;
-
-      case 'pre_workout':
-        return AppTheme.preWorkoutColor;
-
-      case 'post_workout':
-        return AppTheme.postWorkoutColor;
-
-      case 'dinner':
-        return AppTheme.dinnerColor;
-
-      case 'afternoon_snack':
-        return AppTheme.afternoonSnackColor;
-
-      case 'supper':
-        return AppTheme.supperColor;
-
-      default:
-        return AppTheme.contextDefaultColor;
-    }
-  }
-
-  // ============================================================
-  // BUILD
-  // ============================================================
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-
+      backgroundColor: AppTheme.backgroundColor,
       body: SafeArea(
         child: Column(
           children: [
-
-            // ==================================================
-            // CONTEÚDO
-            // ==================================================
-
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(
-                  24,
-                  20,
-                  24,
-                  12,
-                ),
-
+                padding: const EdgeInsets.fromLTRB(24, 20, 24, 12),
                 child: Column(
-                  crossAxisAlignment:
-                      CrossAxisAlignment.start,
-
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-
-                    // Logo
                     _buildLogo(),
-
                     const SizedBox(height: 24),
-
-                    // Título
                     _buildTitle(),
-
                     const SizedBox(height: 12),
-
-                    // Instruções
                     _buildInstructions(),
-
                     const SizedBox(height: 24),
-
-                    // Contextos
                     _buildContextSelector(),
-
                     const SizedBox(height: 32),
-
-                    // Botão
+                    if (!_canAccessDuel) _buildAccessBlockedMessage(),
                     _buildStartButton(),
-
                     const SizedBox(height: 20),
                   ],
                 ),
               ),
             ),
-
-            // ==================================================
-            // BOTTOM NAVIGATION
-            // ==================================================
-
             AppBottomNavigation(
               currentIndex: 2,
-
               onItemSelected: (index) {
-
-                if (index == 0) {
-                  Navigator.pushReplacementNamed(
-                    context,
-                    AppRoutes.homePage,
-                  );
-                }
-
-                else if (index == 1) {
-                  Navigator.pushReplacementNamed(
-                    context,
-                    AppRoutes.optionTheory,
-                  );
-                }
-
-                else if (index == 3) {
-                  Navigator.pushReplacementNamed(
-                    context,
-                    AppRoutes.instructionsQuiz,
-                  );
-                }
-
-                else if (index == 4) {
-                  Navigator.pushReplacementNamed(
-                    context,
-                    AppRoutes.profile,
-                  );
+                switch (index) {
+                  case 0:
+                    Navigator.pushReplacementNamed(context, AppRoutes.homePage);
+                    break;
+                  case 1:
+                    Navigator.pushReplacementNamed(context, AppRoutes.optionTheory);
+                    break;
+                  case 3:
+                    Navigator.pushReplacementNamed(context, AppRoutes.instructionsQuiz);
+                    break;
+                  case 4:
+                    Navigator.pushReplacementNamed(context, AppRoutes.profile);
+                    break;
                 }
               },
             ),
@@ -222,74 +154,52 @@ class _InstructionsDuelPageState
     );
   }
 
-  // ============================================================
-  // LOGO
-  // ============================================================
 
   Widget _buildLogo() {
-    return RichText(
-      text: const TextSpan(
-        style: TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: RichText(
+        text: const TextSpan(
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+          children: [
+            TextSpan(
+              text: 'Glico',
+              style: TextStyles.logoRed,
+            ),
+            TextSpan(
+              text: 'Educa',
+              style: TextStyles.logoGreen,
+            ),
+          ],
         ),
-
-        children: [
-
-          TextSpan(
-            text: 'Glico',
-            style: TextStyles.logoRed,
-          ),
-
-          TextSpan(
-            text: 'Educa',
-            style: TextStyles.logoGreen,
-          ),
-        ],
       ),
     );
   }
 
-  // ============================================================
-  // TÍTULO
-  // ============================================================
 
   Widget _buildTitle() {
     return const Text(
-      'Duelo GlicoEduca',
-
-      style: TextStyle(
-        fontSize: 24,
-        fontWeight: FontWeight.bold,
-        color: AppTheme.textColor,
-      ),
+      'Duelo glicoeduca',
+      style: TextStyles.pageTitle,
     );
   }
 
-  // ============================================================
-  // INSTRUÇÕES
-  // ============================================================
 
   Widget _buildInstructions() {
     return Container(
       width: double.infinity,
-
       padding: const EdgeInsets.all(16),
-
       decoration: BoxDecoration(
-        color: AppTheme.primaryColor.withValues(
-          alpha: 0.06,
-        ),
-
+        color: AppTheme.infoCardBackground,
         borderRadius: BorderRadius.circular(12),
-
         border: Border.all(
-          color: AppTheme.primaryColor.withValues(
-            alpha: 0.15,
-          ),
+          color: AppTheme.infoCardBorder.withValues(alpha: 0.7),
+          width: 1,
         ),
       ),
-
       child: Column(
         crossAxisAlignment:
             CrossAxisAlignment.start,
@@ -298,25 +208,16 @@ class _InstructionsDuelPageState
 
           const Text(
             'Instruções:',
-
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: AppTheme.textColor,
-            ),
+            style: TextStyles.cardTitle,
           ),
 
           const SizedBox(height: 8),
 
           Text(
             'Escolha um contexto e clique em '
-            '"Iniciar duelo". Selecione o alimento '
-            'mais indicado. Depois, veja se você acertou!',
-
-            style: TextStyle(
-              fontSize: 14,
+            '"Iniciar duelo"',
+            style: TextStyles.description.copyWith(
               color: AppTheme.secondaryTextColor,
-              height: 1.4,
             ),
           ),
         ],
@@ -324,15 +225,9 @@ class _InstructionsDuelPageState
     );
   }
 
-  // ============================================================
-  // SELEÇÃO DOS CONTEXTOS
-  // ============================================================
 
   Widget _buildContextSelector() {
 
-    // ----------------------------------------------------------
-    // LOADING
-    // ----------------------------------------------------------
 
     if (_isLoading) {
       return const Center(
@@ -346,9 +241,6 @@ class _InstructionsDuelPageState
       );
     }
 
-    // ----------------------------------------------------------
-    // NENHUM CONTEXTO
-    // ----------------------------------------------------------
 
     if (_contexts.isEmpty) {
       return Container(
@@ -366,67 +258,37 @@ class _InstructionsDuelPageState
         child: const Center(
           child: Text(
             'Nenhum contexto disponível.',
-            style: TextStyle(
-              color: AppTheme.secondaryTextColor,
-            ),
+            style: TextStyles.description,
           ),
         ),
       );
     }
 
-    // ----------------------------------------------------------
-    // CONTEXTOS
-    // ----------------------------------------------------------
 
     return Column(
-      crossAxisAlignment:
-          CrossAxisAlignment.start,
-
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-
         const Text(
           'Selecione o contexto',
-
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: AppTheme.textColor,
-          ),
+          style: TextStyles.cardTitle,
         ),
-
         const SizedBox(height: 12),
-
         GridView.builder(
           shrinkWrap: true,
-
-          physics:
-              const NeverScrollableScrollPhysics(),
-
+          physics: const NeverScrollableScrollPhysics(),
           itemCount: _contexts.length,
-
-          gridDelegate:
-              const SliverGridDelegateWithFixedCrossAxisCount(
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
-
-            crossAxisSpacing: 12,
-
-            mainAxisSpacing: 10,
-
-            childAspectRatio: 2.9,
+            crossAxisSpacing: 8,
+            mainAxisSpacing: 8,
+            childAspectRatio: 2.8,
           ),
-
           itemBuilder: (context, index) {
-
             final item = _contexts[index];
-
             return _contextCard(
               id: item.id,
-
               name: item.name,
-
-              isSelected:
-                  _selectedContextId ==
-                      item.id,
+              isSelected: _selectedContextId == item.id,
             );
           },
         ),
@@ -434,179 +296,106 @@ class _InstructionsDuelPageState
     );
   }
 
-  // ============================================================
-  // CARD DO CONTEXTO
-  // ============================================================
 
   Widget _contextCard({
     required String id,
     required String name,
     required bool isSelected,
   }) {
-
-    final color =
-        _getContextColor(id);
+    final borderColor = AppTheme.getContextBorderColor(id);
+    final backgroundColor = AppTheme.getContextBackgroundColor(id);
 
     return GestureDetector(
-
       onTap: () {
-
         setState(() {
           _selectedContextId = id;
         });
-
-        print(
-          '🔍 Contexto selecionado: '
-          '$name (ID: $id)',
-        );
       },
-
       child: AnimatedContainer(
-
-        duration:
-            const Duration(milliseconds: 150),
-
+        duration: const Duration(milliseconds: 150),
+        height: 48,
         alignment: Alignment.center,
-
         decoration: BoxDecoration(
-
-          color: color,
-
-          borderRadius:
-              BorderRadius.circular(8),
-
-          border: isSelected
-              ? Border.all(
-                  color:
-                      AppTheme.textColor,
-                  width: 2,
-                )
-              : null,
-
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color:
-                        Colors.black.withValues(
-                      alpha: 0.12,
-                    ),
-
-                    blurRadius: 3,
-
-                    offset:
-                        const Offset(0, 2),
-                  ),
-                ]
-              : null,
-        ),
-
-        child: Padding(
-          padding:
-              const EdgeInsets.symmetric(
-            horizontal: 6,
+          color: isSelected ? backgroundColor : Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: borderColor.withValues(alpha: 0.5),
+            width: 1,
           ),
-
-          child: Text(
-            name,
-
-            textAlign:
-                TextAlign.center,
-
-            style: const TextStyle(
-              fontSize: 12,
-
-              fontWeight:
-                  FontWeight.w600,
-
-              color:
-                  AppTheme.textColor,
-            ),
+        ),
+        child: Text(
+          name,
+          textAlign: TextAlign.center,
+          style: TextStyles.cardBodyText.copyWith(
+            color: AppTheme.textColor,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
           ),
         ),
       ),
     );
   }
 
-  // ============================================================
-  // BOTÃO INICIAR DUELO
-  // ============================================================
+
+  Widget _buildAccessBlockedMessage() {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFEAF3FF),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFF1E90FF), width: 1),
+      ),
+      child: const Text(
+        'Você precisa acessar todos os cards do guia para liberar o duelo.',
+        style: TextStyle(
+          fontSize: 12,
+          color: Color(0xFF1F2937),
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
 
   Widget _buildStartButton() {
-
-    final isEnabled =
-        _selectedContextId != null;
+    final isEnabled = _selectedContextId != null && _canAccessDuel;
 
     return SizedBox(
       width: double.infinity,
-
       child: ElevatedButton(
-
         onPressed: !isEnabled
             ? null
             : () {
-
-                final selectedContext =
-                    _contexts.firstWhere(
-                  (c) =>
-                      c.id ==
-                      _selectedContextId,
-                );
-
-                print(
-                  '🚀 Iniciando duelo: '
-                  '${selectedContext.name} '
-                  '(ID: ${selectedContext.id})',
+                final selectedContext = _contexts.firstWhere(
+                  (c) => c.id == _selectedContextId,
                 );
 
                 Navigator.pushNamed(
                   context,
                   AppRoutes.duel,
-
                   arguments: {
-                    'contextId':
-                        selectedContext.id,
-
-                    'contextName':
-                        selectedContext.name,
+                    'contextId': selectedContext.id,
+                    'contextName': selectedContext.name,
                   },
                 );
               },
-
-        style:
-            ElevatedButton.styleFrom(
-
-          backgroundColor:
-              AppTheme.primaryColor,
-
-          foregroundColor:
-              Colors.white,
-
-          disabledBackgroundColor:
-              Colors.grey.shade300,
-
-          disabledForegroundColor:
-              Colors.white,
-
-          padding:
-              const EdgeInsets.symmetric(
-            vertical: 16,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppTheme.primaryColor,
+          foregroundColor: Colors.white,
+          disabledBackgroundColor: Colors.grey.shade300,
+          disabledForegroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
           ),
-
-          shape:
-              RoundedRectangleBorder(
-            borderRadius:
-                BorderRadius.circular(12),
-          ),
-
           elevation: 0,
         ),
-
         child: const Text(
           'Iniciar duelo',
-
           style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
+            color: Colors.white,
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
           ),
         ),
       ),

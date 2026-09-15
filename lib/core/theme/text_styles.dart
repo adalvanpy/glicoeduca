@@ -1,162 +1,115 @@
-// text_styles.dart
-
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 class TextStyles {
-  // ==========================================================
-  // TEXT THEME
-  // ==========================================================
-
-  static const TextTheme textTheme = TextTheme(
-    titleLarge: pageTitle,
-    titleMedium: sectionTitle,
-    bodyLarge: bodyLarge,
-    bodyMedium: bodyMedium,
-    bodySmall: bodySmall,
-    labelLarge: button,
-  );
-
-  // ==========================================================
-  // LOGO
-  // ==========================================================
 
   static const TextStyle logoRed = TextStyle(
-    fontSize: 28,
+    fontSize: 20,
     fontWeight: FontWeight.bold,
-    color: Color(0xFFE53935),
+    color: Color(0xFFEF5350),
   );
 
   static const TextStyle logoGreen = TextStyle(
-    fontSize: 28,
+    fontSize: 20,
     fontWeight: FontWeight.bold,
-    color: Color(0xFF22B83D),
+    color: Color(0xFF2DB93B),
   );
-
-  // ==========================================================
-  // TÍTULOS
-  // ==========================================================
 
   static const TextStyle pageTitle = TextStyle(
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: FontWeight.w700,
-    color: Color(0xFF212121),
+    color: Color(0xFF1F2937),
+    height: 1.2,
   );
 
-  static const TextStyle sectionTitle = TextStyle(
+  static const TextStyle cardTitle = TextStyle(
+    fontSize: 15,
+    fontWeight: FontWeight.w700,
+    color: Color(0xFF1F2937),
+    height: 1.3,
+  );
+
+  static const TextStyle description = TextStyle(
+    fontSize: 15,
+    fontWeight: FontWeight.w400,
+    color: Color(0xFF374151),
+    height: 1.4,
+  );
+
+  static const TextStyle cardBodyText = TextStyle(
     fontSize: 14,
-    fontWeight: FontWeight.w600,
-    color: Color(0xFF212121),
+    fontWeight: FontWeight.w400,
+    color: Color(0xFF374151),
+    height: 1.45,
   );
 
-  // ==========================================================
-  // CORPO
-  // ==========================================================
+  static const TextStyle highlight = TextStyle(
+    fontSize: 13.5,
+    fontWeight: FontWeight.w600,
+    color: Color(0xFF1F2937),
+    height: 1.4,
+  );
 
-  static const TextStyle bodyLarge = TextStyle(
-    fontSize: 16,
-    color: Color(0xFF212121),
+  static const TextStyle bodySmall = TextStyle(
+    fontSize: 13,
+    fontWeight: FontWeight.w400,
+    color: Color(0xFF374151),
     height: 1.4,
   );
 
   static const TextStyle bodyMedium = TextStyle(
     fontSize: 14,
-    color: Color(0xFF333333),
+    fontWeight: FontWeight.w500,
+    color: Color(0xFF1F2937),
     height: 1.4,
   );
 
-  static const TextStyle bodySmall = TextStyle(
+  static const TextStyle navigation = TextStyle(
     fontSize: 12,
-    color: Color(0xFF555555),
-    height: 1.35,
+    fontWeight: FontWeight.w500,
+    color: Color(0xFF374151),
+    height: 1.3,
   );
-
-  static const TextStyle description = TextStyle(
-    fontSize: 13,
-    color: Color(0xFF444444),
-    height: 1.4,
-  );
-
-  // ==========================================================
-  // BOTÕES
-  // ==========================================================
-
-  static const TextStyle button = TextStyle(
-    fontSize: 15,
-    fontWeight: FontWeight.w600,
-    color: Colors.white,
-  );
-
-  // ==========================================================
-  // GUIA TEÓRICO
-  // ==========================================================
-
-  static const TextStyle indicator = TextStyle(
-    fontSize: 22,
-    fontWeight: FontWeight.bold,
-    color: Color(0xFF212121),
-  );
-
-  // ==========================================================
-  // ALIMENTOS
-  // ==========================================================
-
-  static const TextStyle foodName = TextStyle(
-    fontSize: 13,
-    fontWeight: FontWeight.w600,
-    color: Color(0xFF212121),
-  );
-
-  static const TextStyle foodMetric = TextStyle(
-    fontSize: 12,
-    fontWeight: FontWeight.w700,
-    color: Color(0xFF212121),
-  );
-
-  // ==========================================================
-  // QUIZ
-  // ==========================================================
 
   static const TextStyle question = TextStyle(
-    fontSize: 15,
+    fontSize: 18,
     fontWeight: FontWeight.w600,
-    color: Color(0xFF212121),
+    color: Color(0xFF1F2937),
+    height: 1.4,
+  );
+
+  static const TextStyle foodName = TextStyle(
+    fontSize: 14,
+    fontWeight: FontWeight.w600,
+    color: Color(0xFF1F2937),
   );
 
   static const TextStyle success = TextStyle(
-    fontSize: 13,
-    fontWeight: FontWeight.w700,
-    color: Color(0xFF22B83D),
-  );
-
-  static const TextStyle explanation = TextStyle(
-    fontSize: 12,
-    color: Color(0xFF444444),
+    fontSize: 14,
+    fontWeight: FontWeight.w600,
+    color: Color(0xFF2DB93B),
     height: 1.4,
   );
 
-  // ==========================================================
-  // PERFIL
-  // ==========================================================
-
-  static const TextStyle profileName = TextStyle(
-    fontSize: 16,
-    fontWeight: FontWeight.w600,
-    color: Color(0xFF212121),
+  static const TextStyle explanation = TextStyle(
+    fontSize: 13,
+    fontWeight: FontWeight.w400,
+    color: Color(0xFF374151),
+    height: 1.45,
   );
 
-  // ==========================================================
-  // NAVEGAÇÃO
-  // ==========================================================
+  static const TextStyle sectionTitle = pageTitle;
 
-  static const TextStyle navigation = TextStyle(
-    fontSize: 10,
-    fontWeight: FontWeight.w500,
-    color: Color(0xFF666666),
-  );
-
-  static const TextStyle navigationActive = TextStyle(
-    fontSize: 10,
-    fontWeight: FontWeight.w700,
-    color: Color(0xFF1E88E5),
+  static const TextTheme textTheme = TextTheme(
+    headlineSmall: pageTitle,
+    titleLarge: cardTitle,
+    titleMedium: cardTitle,
+    titleSmall: description,
+    bodyLarge: cardBodyText,
+    bodyMedium: cardBodyText,
+    bodySmall: bodySmall,
+    labelLarge: highlight,
+    labelMedium: highlight,
+    labelSmall: bodySmall,
   );
 }
+

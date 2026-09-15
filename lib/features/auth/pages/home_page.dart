@@ -1,4 +1,4 @@
-import 'package:firebase_auth/firebase_auth.dart';
+﻿import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
@@ -46,9 +46,6 @@ class _HomePageState extends State<HomePage> {
     _loadUserData();
   }
 
-  // ================================================================
-  // CARREGAR DADOS DO USUÁRIO
-  // ================================================================
 
   Future<void> _loadUserData() async {
     if (!mounted) return;
@@ -70,46 +67,19 @@ class _HomePageState extends State<HomePage> {
     }
 
     try {
-      // ============================================================
-      // USUÁRIO
-      // ============================================================
-
       _user = await _getUserData(userId);
-
-      // ============================================================
-      // AVATAR
-      // ============================================================
 
       if (_user != null && _user!.avatar.isNotEmpty) {
         try {
-          _userAvatar = await _avatarRepo.getAvatarById(
-            _user!.avatar,
-          );
-
-          debugPrint(
-            '🧑 Avatar ID: ${_user!.avatar}',
-          );
-
-          debugPrint(
-            '🖼️ Avatar imagem: ${_userAvatar?.image}',
-          );
-        } catch (e) {
-          debugPrint(
-            '⚠️ Erro ao carregar avatar: $e',
-          );
-
+          _userAvatar = await _avatarRepo.getAvatarById(_user!.avatar);
+        } catch (_) {
           _userAvatar = null;
         }
       } else {
         _userAvatar = null;
       }
 
-      // ============================================================
-      // PROGRESSO DAS TEORIAS
-      // ============================================================
-
-      final progressList =
-          await _progressRepo.getUserProgress(userId);
+      final progressList = await _progressRepo.getUserProgress(userId);
 
       _progress.clear();
 
@@ -117,32 +87,16 @@ class _HomePageState extends State<HomePage> {
         _progress[p.theoryTitle] = p.progress;
       }
 
-      // ============================================================
-      // QUIZ
-      // ============================================================
-
-      final quizResults =
-          await _quizRepo.getResultsByUser(userId);
+      final quizResults = await _quizRepo.getResultsByUser(userId);
 
       if (quizResults.isNotEmpty) {
-        _bestQuizScore = quizResults
-            .map((e) => e.hits)
-            .reduce(
-              (a, b) => a > b ? a : b,
-            );
+        _bestQuizScore = quizResults.map((e) => e.hits).reduce((a, b) => a > b ? a : b);
       } else {
         _bestQuizScore = 0;
       }
 
-      // ============================================================
-      // DUELOS
-      // ============================================================
-
       _duelWins = await _getDuelWins(userId);
-    } catch (e) {
-      debugPrint(
-        '❌ Erro ao carregar dados: $e',
-      );
+    } catch (_) {
     } finally {
       if (mounted) {
         setState(() {
@@ -152,66 +106,39 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  // ================================================================
-  // BUSCAR VITÓRIAS DOS DUELOS
-  // ================================================================
 
   Future<int> _getDuelWins(String userId) async {
     try {
-      final duelProgress =
-          await _duelRepo.getUserDuelProgress(userId);
+      final duelProgress = await _duelRepo.getUserDuelProgress(userId);
 
       if (duelProgress != null) {
         return duelProgress.wins;
       }
 
       return 0;
-    } catch (e) {
-      debugPrint(
-        '⚠️ Erro ao carregar vitórias dos duelos: $e',
-      );
-
+    } catch (_) {
       return 0;
     }
   }
 
-  // ================================================================
-  // BUSCAR USUÁRIO
-  // ================================================================
-
   Future<UserModel?> _getUserData(String userId) async {
     try {
-      final doc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(userId)
-          .get();
+      final doc = await FirebaseFirestore.instance.collection('users').doc(userId).get();
 
       if (doc.exists && doc.data() != null) {
-        return UserModel.fromMap(
-          doc.data()!,
-          doc.id,
-        );
+        return UserModel.fromMap(doc.data()!, doc.id);
       }
-    } catch (e) {
-      debugPrint(
-        '❌ Erro ao buscar usuário: $e',
-      );
+    } catch (_) {
     }
 
     return null;
   }
 
-  // ================================================================
-  // BUSCAR PROGRESSO
-  // ================================================================
 
   double _getProgress(String theoryTitle) {
     return _progress[theoryTitle] ?? 0.0;
   }
 
-  // ================================================================
-  // BUILD
-  // ================================================================
 
   @override
   Widget build(BuildContext context) {
@@ -253,34 +180,35 @@ class _HomePageState extends State<HomePage> {
                     ),
             ),
 
-            // ========================================================
-            // BOTTOM NAVIGATION
-            // ========================================================
 
             AppBottomNavigation(
               currentIndex: 0,
-
               onItemSelected: (index) {
-                if (index == 1) {
-                  Navigator.pushReplacementNamed(
-                    context,
-                    AppRoutes.optionTheory,
-                  );
-                } else if (index == 2) {
-                  Navigator.pushReplacementNamed(
-                    context,
-                    AppRoutes.instructionsDuel,
-                  );
-                } else if (index == 3) {
-                  Navigator.pushReplacementNamed(
-                    context,
-                    AppRoutes.instructionsQuiz,
-                  );
-                } else if (index == 4) {
-                  Navigator.pushReplacementNamed(
-                    context,
-                    AppRoutes.profile,
-                  );
+                switch (index) {
+                  case 1:
+                    Navigator.pushReplacementNamed(
+                      context,
+                      AppRoutes.optionTheory,
+                    );
+                    break;
+                  case 2:
+                    Navigator.pushReplacementNamed(
+                      context,
+                      AppRoutes.instructionsDuel,
+                    );
+                    break;
+                  case 3:
+                    Navigator.pushReplacementNamed(
+                      context,
+                      AppRoutes.instructionsQuiz,
+                    );
+                    break;
+                  case 4:
+                    Navigator.pushReplacementNamed(
+                      context,
+                      AppRoutes.profile,
+                    );
+                    break;
                 }
               },
             ),
@@ -290,9 +218,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // ================================================================
-  // HEADER
-  // ================================================================
 
   Widget _buildHeader() {
     final userName = _user?.name ?? 'Usuário';
@@ -302,85 +227,68 @@ class _HomePageState extends State<HomePage> {
       children: [
         Row(
           children: [
-            // ========================================================
-            // LOGO
-            // ========================================================
-
-            RichText(
-              text: const TextSpan(
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
+            Expanded(
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: RichText(
+                  text: const TextSpan(
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    children: [
+                      TextSpan(
+                        text: 'Glico',
+                        style: TextStyles.logoRed,
+                      ),
+                      TextSpan(
+                        text: 'Educa',
+                        style: TextStyles.logoGreen,
+                      ),
+                    ],
+                  ),
                 ),
-                children: [
-                  TextSpan(
-                    text: 'Glico',
-                    style: TextStyles.logoRed,
-                  ),
-                  TextSpan(
-                    text: 'Educa',
-                    style: TextStyles.logoGreen,
-                  ),
-                ],
               ),
             ),
-
-            const Spacer(),
-
-            // ========================================================
-            // AVATAR
-            // ========================================================
-
-            GestureDetector(
-              onTap: () {
-                Navigator.pushReplacementNamed(
-                  context,
-                  AppRoutes.profile,
-                );
-              },
-              child: CircleAvatar(
-                radius: 22,
-
-                backgroundColor:
-                    const Color(0xFFE3F2FD),
-
-                backgroundImage:
-                    _getUserAvatarImage(),
-
-                child: _getUserAvatarImage() == null
-                    ? const Icon(
-                        Icons.person,
-                        color: AppTheme.primaryColor,
-                        size: 26,
-                      )
-                    : null,
+            SizedBox(
+              width: 38,
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.pushReplacementNamed(
+                      context,
+                      AppRoutes.profile,
+                    );
+                  },
+                  child: CircleAvatar(
+                    radius: 19,
+                    backgroundColor: const Color(0xFFE4E4E4),
+                    backgroundImage: _getUserAvatarImage(),
+                    child: _getUserAvatarImage() == null
+                        ? const Icon(
+                            Icons.person,
+                            color: Color(0xFF9E9E9E),
+                            size: 26,
+                          )
+                        : null,
+                  ),
+                ),
               ),
             ),
           ],
         ),
-
-        const SizedBox(height: 8),
-
-        // ============================================================
-        // SAUDAÇÃO
-        // ============================================================
-
+        const SizedBox(height: 20),
         Text(
           'Bem vindo, $userName!',
-
-          style: const TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-            color: Colors.black87,
+          style: TextStyles.pageTitle.copyWith(
+            fontSize: 24,
           ),
         ),
       ],
     );
   }
 
-  // ================================================================
-  // IMAGEM DO AVATAR
-  // ================================================================
 
   ImageProvider? _getUserAvatarImage() {
     if (_userAvatar == null) {
@@ -400,24 +308,12 @@ class _HomePageState extends State<HomePage> {
     return null;
   }
 
-  // ================================================================
-  // SEÇÃO DE PROGRESSO
-  // ================================================================
 
   Widget _buildProgressSection() {
     final theories = [
-      {
-        'id': 'carbohydrates',
-        'title': 'Carboidratos',
-      },
-      {
-        'id': 'glycemic_index',
-        'title': 'Índice Glicêmico',
-      },
-      {
-        'id': 'glycemic_load',
-        'title': 'Carga Glicêmica',
-      },
+      {'id': 'carbohydrates', 'title': 'Carboidratos'},
+      {'id': 'glycemic_index', 'title': 'Índice glicêmico'},
+      {'id': 'glycemic_load', 'title': 'Carga glicêmica'},
     ];
 
     return Column(
@@ -425,99 +321,49 @@ class _HomePageState extends State<HomePage> {
       children: [
         const Text(
           'Seus progressos',
-
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: Colors.black87,
-          ),
+          style: TextStyles.cardTitle,
         ),
-
-        const SizedBox(height: 14),
-
-        ...theories.map(
-          (theory) {
-            final progress =
-                _getProgress(theory['title']!);
-
-            return _progressCard(
-              title: theory['title']!,
-              progress: progress,
-            );
-          },
-        ),
+        const SizedBox(height: 12),
+        ...theories.map((theory) {
+          final progress = _getProgress(theory['title']!);
+          return _progressCard(
+            title: theory['title']!,
+            progress: progress,
+          );
+        }),
       ],
     );
   }
 
-  // ================================================================
-  // CARD DE PROGRESSO
-  // ================================================================
 
   Widget _progressCard({
     required String title,
     required double progress,
   }) {
-    final percentage =
-        (progress * 100).round();
+    final percentage = (progress * 100).round();
 
     return Container(
-      margin: const EdgeInsets.only(
-        bottom: 12,
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: AppTheme.cardDecoration(
+        borderColor: AppTheme.infoCardBorder.withValues(alpha: 0.5),
+        radius: 12,
       ),
-
-      padding: const EdgeInsets.symmetric(
-        horizontal: 16,
-        vertical: 12,
-      ),
-
-      decoration: BoxDecoration(
-        color: Colors.white,
-
-        borderRadius:
-            BorderRadius.circular(10),
-
-        boxShadow: [
-          BoxShadow(
-            color:
-                Colors.black.withOpacity(0.04),
-
-            blurRadius: 6,
-
-            offset: const Offset(0, 2),
-          ),
-        ],
-
-        border: Border.all(
-          color: Colors.grey.shade200,
-          width: 1,
-        ),
-      ),
-
       child: Row(
         children: [
           Expanded(
             child: Text(
               title,
-
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: Colors.black87,
-              ),
+              style: TextStyles.bodyMedium,
             ),
           ),
-
           const SizedBox(width: 12),
-
           Text(
             '$percentage%',
-
             style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color:
-                  _getProgressColor(progress),
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              color: _getProgressColor(progress),
             ),
           ),
         ],
@@ -525,9 +371,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // ================================================================
-  // COR DO PROGRESSO
-  // ================================================================
 
   Color _getProgressColor(double progress) {
     if (progress >= 0.7) {
@@ -541,34 +384,27 @@ class _HomePageState extends State<HomePage> {
     return Colors.red;
   }
 
-  // ================================================================
-  // ESTATÍSTICAS
-  // ================================================================
 
   Widget _buildStatsSection() {
     return IntrinsicHeight(
       child: Row(
-        crossAxisAlignment:
-            CrossAxisAlignment.stretch,
-
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Expanded(
             child: _statCard(
               title: 'Melhor pontuação quiz',
               value: '$_bestQuizScore%',
-              icon: Icons.quiz,
-              color: AppTheme.primaryColor,
+              color: AppTheme.successColor,
+              icon: Icons.emoji_events_rounded,
             ),
           ),
-
           const SizedBox(width: 12),
-
           Expanded(
             child: _statCard(
               title: 'Acertos em duelos',
               value: '$_duelWins',
-              icon: Icons.emoji_events,
               color: AppTheme.successColor,
+              icon: Icons.sports_score_rounded,
             ),
           ),
         ],
@@ -576,70 +412,51 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // ================================================================
-  // CARD DE ESTATÍSTICA
-  // ================================================================
 
   Widget _statCard({
     required String title,
     required String value,
-    required IconData icon,
     required Color color,
+    required IconData icon,
   }) {
     return Container(
       width: double.infinity,
-
-      padding: const EdgeInsets.all(16),
-
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
       decoration: BoxDecoration(
-        color: color.withValues(
-          alpha: 0.06,
-        ),
-
-        borderRadius:
-            BorderRadius.circular(10),
-
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(
-          color: color.withValues(
-            alpha: 0.15,
-          ),
-
+          color: AppTheme.infoCardBorder.withValues(alpha: 0.5),
           width: 1,
         ),
       ),
-
       child: Column(
-        crossAxisAlignment:
-            CrossAxisAlignment.start,
-
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Icon(
             icon,
             size: 22,
             color: color,
           ),
-
-          const SizedBox(height: 6),
-
-          Text(
-            value,
-
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-          ),
-
-          const SizedBox(height: 2),
-
+          const SizedBox(height: 8),
           Text(
             title,
-
-            style: TextStyle(
-              fontSize: 11,
-              color: Colors.grey.shade600,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 12,
+              color: Color(0xFF4B5563),
               height: 1.2,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              color: color,
             ),
           ),
         ],

@@ -1,4 +1,4 @@
-// duel_repository.dart
+﻿
 import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/duel_model.dart';
@@ -19,7 +19,6 @@ class DuelRepository {
   final CollectionReference _progressCollection = 
       FirebaseFirestore.instance.collection('user_duel_progress');
 
-  // Buscar todos os contextos
   Future<List<ContextModel>> getContexts() async {
     try {
       QuerySnapshot snapshot = await _contextCollection.get();
@@ -35,7 +34,6 @@ class DuelRepository {
     }
   }
 
-  // Buscar duelos por contexto (apenas os IDs)
   Future<List<DuelModel>> getDuelsByContext(String contextId) async {
     try {
       QuerySnapshot snapshot = await _duelCollection
@@ -53,7 +51,6 @@ class DuelRepository {
     }
   }
 
-  // Buscar Food por ID
   Future<FoodModel?> getFoodById(String foodId) async {
     try {
       DocumentSnapshot doc = await _foodCollection.doc(foodId).get();
@@ -70,7 +67,6 @@ class DuelRepository {
     }
   }
 
-  // Buscar NutritionistTip por ID
   Future<NutritionistTipsModel?> getNutritionistTipById(String tipId) async {
     try {
       DocumentSnapshot doc = await _nutritionistTipsCollection.doc(tipId).get();
@@ -87,10 +83,9 @@ class DuelRepository {
     }
   }
 
-  // Buscar item por ID (tenta Food e depois NutritionistTip)
   Future<({dynamic item, String type})?> getItemById(String id) async {
     try {
-      // Tentar buscar como Food
+
       DocumentSnapshot foodDoc = await _foodCollection.doc(id).get();
       if (foodDoc.exists) {
         final food = FoodModel.fromMap(
@@ -100,7 +95,6 @@ class DuelRepository {
         return (item: food, type: 'food');
       }
 
-      // Tentar buscar como NutritionistTip
       DocumentSnapshot tipDoc = await _nutritionistTipsCollection.doc(id).get();
       if (tipDoc.exists) {
         final tip = NutritionistTipsModel.fromMap(
@@ -112,12 +106,11 @@ class DuelRepository {
 
       return null;
     } catch (e) {
-      debugPrint('❌ Erro ao buscar item: $e');
+
       return null;
     }
   }
 
-  // Buscar progresso do usuário
   Future<UserDuelProgressModel?> getUserDuelProgress(String userId) async {
     try {
       QuerySnapshot snapshot = await _progressCollection
@@ -138,7 +131,6 @@ class DuelRepository {
     }
   }
 
-  // Salvar progresso do duelo
   Future<void> saveUserDuelProgress({
     required String userId,
     required bool isWinner,
@@ -168,7 +160,6 @@ class DuelRepository {
     }
   }
 
-  // Stream em tempo real - duelos por contexto
   Stream<List<DuelModel>> streamDuelsByContext(String contextId) {
     return _duelCollection
         .where('contextId', isEqualTo: contextId)
@@ -183,7 +174,6 @@ class DuelRepository {
     });
   }
 
-  // Stream em tempo real - progresso do usuário
   Stream<UserDuelProgressModel?> streamUserProgress(String userId) {
     return _progressCollection
         .where('userId', isEqualTo: userId)

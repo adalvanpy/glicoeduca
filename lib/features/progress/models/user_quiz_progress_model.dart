@@ -1,4 +1,4 @@
-// user_quiz_progress_model.dart
+﻿
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class UserQuizProgressModel {
@@ -42,3 +42,4 @@ class UserQuizProgressModel {
     };
   }
 }
+

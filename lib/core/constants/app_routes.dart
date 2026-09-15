@@ -1,29 +1,28 @@
 import 'package:flutter/material.dart';
 
+import '../../features/auth/pages/home_page.dart';
 import '../../features/auth/pages/login_page.dart';
 import '../../features/auth/pages/register_page.dart';
-
-import '../../features/theory/pages/carbhoydrates_page.dart';
-import '../../features/theory/pages/glycemic_index_page.dart';
-import '../../features/theory/pages/glycemic_load_page.dart';
-import '../../features/options/pages/option_theory_page.dart';
-
 import '../../features/duel/controllers/duel_controller.dart';
 import '../../features/duel/pages/duel_page.dart';
 import '../../features/duel/pages/instructions_duel_page.dart';
 import '../../features/duel/repositories/duel_repository.dart';
-
+import '../../features/foods/models/food_model.dart';
+import '../../features/foods/pages/food_details_page.dart';
+import '../../features/foods/pages/food_page.dart';
+import '../../features/nutritionist_tips/models/nutritionist_tips_model.dart';
+import '../../features/nutritionist_tips/pages/nutritionist_tips_details_page.dart';
+import '../../features/nutritionist_tips/pages/nutritionist_tips_page.dart';
+import '../../features/profile/pages/edit_avatar_page.dart';
+import '../../features/profile/pages/edit_name_page.dart';
+import '../../features/profile/pages/profile_page.dart';
+import '../../features/quiz/pages/instructions_quiz_page.dart';
 import '../../features/quiz/pages/quiz_page.dart';
 import '../../features/quiz/pages/quiz_result_page.dart';
-import '../../features/quiz/pages/instructions_quiz_page.dart';
-
-import '../../features/foods/pages/food_page.dart';
-import '../../features/nutritionist_tips/pages/nutritionist_tips_page.dart';
-
-import '../../features/profile/pages/profile_page.dart';
-import '../../features/profile/pages/edit_name_page.dart';
-import '../../features/profile/pages/edit_avatar_page.dart';
-import '../../features/auth/pages/home_page.dart';
+import '../../features/theory/pages/carbhoydrates_page.dart';
+import '../../features/theory/pages/glycemic_index_page.dart';
+import '../../features/theory/pages/glycemic_load_page.dart';
+import '../../features/theory/pages/option_theory_page.dart';
 
 class AppRoutes {
   static const String login = '/';
@@ -40,8 +39,10 @@ class AppRoutes {
   static const String quiz = '/quiz';
   static const String quizResult = '/quiz-result';
 
-  static const String food = '/food'; 
+  static const String food = '/food';
+  static const String foodDetails = '/food-details';
   static const String nutritionistTips = '/nutritionist-tips';
+  static const String nutritionistTipsDetails = '/nutritionist-tips-details';
 
   static const String profile = '/profile';
   static const String editName = '/edit-name';
@@ -67,7 +68,8 @@ class AppRoutes {
         } else if (theoryId == 'glycemic_load') {
           return MaterialPageRoute(builder: (_) => const GlycemicLoadPage());
         }
-        return MaterialPageRoute(builder: (_) => const TheoryPage());
+
+        return MaterialPageRoute(builder: (_) => const OptionTheoryPage());
 
       case theoryContent:
         return MaterialPageRoute(builder: (_) => const TheoryPage());
@@ -79,11 +81,12 @@ class AppRoutes {
         return MaterialPageRoute(builder: (_) => const GlycemicLoadPage());
 
       case duel:
+        final args = settings.arguments as Map<String, dynamic>?;
         return MaterialPageRoute(
           builder: (_) => DuelPage(
-            controller: DuelController(
-              repository: DuelRepository(),
-            ),
+            controller: DuelController(repository: DuelRepository()),
+            initialContextId: args?['contextId'] as String?,
+            initialContextName: args?['contextName'] as String?,
           ),
         );
 
@@ -92,16 +95,14 @@ class AppRoutes {
 
       case homePage:
         return MaterialPageRoute(builder: (_) => const HomePage());
-      
+
       case instructionsQuiz:
         return MaterialPageRoute(builder: (_) => const InstructionsQuizPage());
 
       case quiz:
         final args = settings.arguments as Map<String, dynamic>?;
         return MaterialPageRoute(
-          builder: (_) => QuizPage(
-            level: args?['level'] ?? 'Fácil',
-          ),
+          builder: (_) => QuizPage(level: args?['level'] ?? 'Fácil'),
         );
 
       case quizResult:
@@ -117,8 +118,32 @@ class AppRoutes {
       case food:
         return MaterialPageRoute(builder: (_) => const FoodPage());
 
+      case foodDetails:
+        final food = settings.arguments as FoodModel?;
+        if (food == null) {
+          return MaterialPageRoute(
+            builder: (_) => const Scaffold(
+              body: Center(child: Text('Alimento não encontrado')),
+            ),
+          );
+        }
+        return MaterialPageRoute(builder: (_) => FoodDetailsPage(food: food));
+
       case nutritionistTips:
         return MaterialPageRoute(builder: (_) => const NutritionistTipsPage());
+
+      case nutritionistTipsDetails:
+        final tip = settings.arguments as NutritionistTipsModel?;
+        if (tip == null) {
+          return MaterialPageRoute(
+            builder: (_) => const Scaffold(
+              body: Center(child: Text('Dica não encontrada')),
+            ),
+          );
+        }
+        return MaterialPageRoute(
+          builder: (_) => NutritionistTipsDetailsPage(tip: tip),
+        );
 
       case profile:
         return MaterialPageRoute(builder: (_) => const ProfilePage());
@@ -131,11 +156,8 @@ class AppRoutes {
 
       default:
         return MaterialPageRoute(
-          builder: (_) => const Scaffold(
-            body: Center(
-              child: Text('Rota não encontrada'),
-            ),
-          ),
+          builder: (_) =>
+              const Scaffold(body: Center(child: Text('Rota não encontrada'))),
         );
     }
   }

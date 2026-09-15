@@ -1,6 +1,5 @@
-// lib/features/foods/repositories/food_repository.dart
+﻿
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
 import '../models/food_model.dart';
 
 class FoodRepository {
@@ -9,174 +8,143 @@ class FoodRepository {
   FoodRepository({FirebaseFirestore? firestore})
       : _firestore = firestore ?? FirebaseFirestore.instance;
 
-  // 🔥 BUSCA TODOS OS ALIMENTOS
-  Future<List<FoodModel>> getFoods() async {
+  Map<String, dynamic> _documentData(DocumentSnapshot<Object?> doc) {
+    final data = doc.data();
+    if (data == null) {
+      return <String, dynamic>{};
+    }
+    if (data is Map<String, dynamic>) {
+      return data;
+    }
+    return Map<String, dynamic>.from(data as Map);
+  }
+
+  List<FoodModel> _mapFoods(QuerySnapshot<Object?> snapshot) {
+    return snapshot.docs
+        .map((doc) => FoodModel.fromMap(_documentData(doc), doc.id))
+        .toList();
+  }
+
+  Future<List<FoodModel>> _safeQueryList(
+    Future<QuerySnapshot<Object?>> Function() queryBuilder,
+  ) async {
     try {
-      final snapshot = await _firestore.collection('foods').get();
-
-      debugPrint('📋 Alimentos encontrados: ${snapshot.docs.length}');
-
-      return snapshot.docs.map((doc) {
-        final data = doc.data() as Map<String, dynamic>? ?? {};
-        return FoodModel.fromMap(data, doc.id);
-      }).toList();
-    } catch (e) {
-      debugPrint('❌ Erro ao buscar alimentos: $e');
+      final snapshot = await queryBuilder();
+      return _mapFoods(snapshot);
+    } catch (_) {
       return [];
     }
   }
 
-  // 🔥 BUSCA ALIMENTO POR ID
+  Future<List<FoodModel>> getFoods() async {
+    return _safeQueryList(() => _firestore.collection('foods').get());
+  }
+
   Future<FoodModel?> getFoodById(String foodId) async {
     if (foodId.trim().isEmpty) {
-      debugPrint('⚠️ getFoodById: ID vazio!');
       return null;
     }
 
     try {
       final doc = await _firestore.collection('foods').doc(foodId).get();
 
-      if (!doc.exists || doc.data() == null) {
-        debugPrint('⚠️ Alimento não encontrado: $foodId');
+      if (!doc.exists) {
         return null;
       }
 
-      final data = doc.data() as Map<String, dynamic>? ?? {};
-      return FoodModel.fromMap(data, doc.id);
-    } catch (e) {
-      debugPrint('❌ Erro ao buscar alimento $foodId: $e');
+      return FoodModel.fromMap(_documentData(doc), doc.id);
+    } catch (_) {
       return null;
     }
   }
 
-  // 🔥 BUSCA ALIMENTOS POR CATEGORIA
   Future<List<FoodModel>> getFoodsByCategory(String category) async {
-    try {
-      final snapshot = await _firestore
+    return _safeQueryList(
+      () => _firestore
           .collection('foods')
           .where('category', isEqualTo: category)
-          .get();
-
-      debugPrint('📋 Alimentos da categoria $category: ${snapshot.docs.length}');
-
-      return snapshot.docs.map((doc) {
-        final data = doc.data() as Map<String, dynamic>? ?? {};
-        return FoodModel.fromMap(data, doc.id);
-      }).toList();
-    } catch (e) {
-      debugPrint('❌ Erro ao buscar alimentos por categoria: $e');
-      return [];
-    }
+          .get(),
+    );
   }
 
-  // 🔥 BUSCA ALIMENTOS POR CLASSIFICAÇÃO DO ÍNDICE GLICÊMICO
   Future<List<FoodModel>> getFoodsByGlycemicIndexClassification(
       String classification) async {
-    try {
-      final snapshot = await _firestore
+    return _safeQueryList(
+      () => _firestore
           .collection('foods')
           .where('glycemicIndexClassification', isEqualTo: classification)
-          .get();
-
-      return snapshot.docs.map((doc) {
-        final data = doc.data() as Map<String, dynamic>? ?? {};
-        return FoodModel.fromMap(data, doc.id);
-      }).toList();
-    } catch (e) {
-      debugPrint('❌ Erro ao buscar alimentos por classificação IG: $e');
-      return [];
-    }
+          .get(),
+    );
   }
 
-  // 🔥 BUSCA ALIMENTOS POR CLASSIFICAÇÃO DA CARGA GLICÊMICA
   Future<List<FoodModel>> getFoodsByGlycemicLoadClassification(
       String classification) async {
-    try {
-      final snapshot = await _firestore
+    return _safeQueryList(
+      () => _firestore
           .collection('foods')
           .where('glycemicLoadClassification', isEqualTo: classification)
-          .get();
-
-      return snapshot.docs.map((doc) {
-        final data = doc.data() as Map<String, dynamic>? ?? {};
-        return FoodModel.fromMap(data, doc.id);
-      }).toList();
-    } catch (e) {
-      debugPrint('❌ Erro ao buscar alimentos por classificação CG: $e');
-      return [];
-    }
+          .get(),
+    );
   }
 
-  // 🔥 BUSCA ALIMENTOS COM FILTRO MÚLTIPLO
+  String _normalizeFilterValue(String? value) {
+    return (value ?? '').trim().toLowerCase();
+  }
+
   Future<List<FoodModel>> getFoodsFiltered({
     String? category,
+    String? carbohydrateType,
     String? glycemicIndexClassification,
     String? glycemicLoadClassification,
   }) async {
-    try {
-      Query query = _firestore.collection('foods');
+    final foods = await getFoods();
 
-      if (category != null && category.isNotEmpty) {
-        query = query.where('category', isEqualTo: category);
+    final normalizedCategory = _normalizeFilterValue(category);
+    final normalizedCarbohydrateType = _normalizeFilterValue(carbohydrateType);
+    final normalizedGlycemicIndexClassification =
+        _normalizeFilterValue(glycemicIndexClassification);
+    final normalizedGlycemicLoadClassification =
+        _normalizeFilterValue(glycemicLoadClassification);
+
+    return foods.where((food) {
+      if (normalizedCategory.isNotEmpty &&
+          _normalizeFilterValue(food.category) != normalizedCategory) {
+        return false;
       }
 
-      if (glycemicIndexClassification != null &&
-          glycemicIndexClassification.isNotEmpty) {
-        query = query.where('glycemicIndexClassification',
-            isEqualTo: glycemicIndexClassification);
+      if (normalizedCarbohydrateType.isNotEmpty &&
+          _normalizeFilterValue(food.carbohydrateType) !=
+              normalizedCarbohydrateType) {
+        return false;
       }
 
-      if (glycemicLoadClassification != null &&
-          glycemicLoadClassification.isNotEmpty) {
-        query = query.where('glycemicLoadClassification',
-            isEqualTo: glycemicLoadClassification);
+      if (normalizedGlycemicIndexClassification.isNotEmpty) {
+        final igValue = _normalizeFilterValue(food.glycemicIndexClassification);
+        if (igValue.isEmpty || igValue != normalizedGlycemicIndexClassification) {
+          return false;
+        }
       }
 
-      final snapshot = await query.get();
+      if (normalizedGlycemicLoadClassification.isNotEmpty) {
+        final cgValue = _normalizeFilterValue(food.glycemicLoadClassification);
+        if (cgValue.isEmpty || cgValue != normalizedGlycemicLoadClassification) {
+          return false;
+        }
+      }
 
-      return snapshot.docs.map((doc) {
-        final data = doc.data() as Map<String, dynamic>? ?? {};
-        return FoodModel.fromMap(data, doc.id);
-      }).toList();
-    } catch (e) {
-      debugPrint('❌ Erro ao buscar alimentos filtrados: $e');
-      return [];
-    }
+      return true;
+    }).toList();
   }
 
-  // 🔥 ORDENA ALIMENTOS POR ÍNDICE GLICÊMICO (CRESCENTE)
   Future<List<FoodModel>> getFoodsOrderedByGlycemicIndex() async {
-    try {
-      final snapshot = await _firestore
-          .collection('foods')
-          .orderBy('glycemicIndex')
-          .get();
-
-      return snapshot.docs.map((doc) {
-        final data = doc.data() as Map<String, dynamic>? ?? {};
-        return FoodModel.fromMap(data, doc.id);
-      }).toList();
-    } catch (e) {
-      debugPrint('❌ Erro ao buscar alimentos ordenados por IG: $e');
-      return [];
-    }
+    return _safeQueryList(
+      () => _firestore.collection('foods').orderBy('glycemicIndex').get(),
+    );
   }
 
-  // 🔥 ORDENA ALIMENTOS POR CARGA GLICÊMICA (CRESCENTE)
   Future<List<FoodModel>> getFoodsOrderedByGlycemicLoad() async {
-    try {
-      final snapshot = await _firestore
-          .collection('foods')
-          .orderBy('glycemicLoad')
-          .get();
-
-      return snapshot.docs.map((doc) {
-        final data = doc.data() as Map<String, dynamic>? ?? {};
-        return FoodModel.fromMap(data, doc.id);
-      }).toList();
-    } catch (e) {
-      debugPrint('❌ Erro ao buscar alimentos ordenados por CG: $e');
-      return [];
-    }
+    return _safeQueryList(
+      () => _firestore.collection('foods').orderBy('glycemicLoad').get(),
+    );
   }
 }

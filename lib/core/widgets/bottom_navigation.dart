@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
 import '../theme/text_styles.dart';
@@ -16,7 +16,7 @@ class AppBottomNavigation extends StatelessWidget {
   static const _items = [
     (icon: Icons.home_outlined, label: 'Início'),
     (icon: Icons.menu_book_outlined, label: 'Guia'),
-    (icon: Icons.sports_kabaddi_outlined, label: 'Game'),
+    (icon: Icons.sports_kabaddi_outlined, label: 'Duelo'),
     (icon: Icons.quiz_outlined, label: 'Quiz'),
     (icon: Icons.person_outline, label: 'Perfil'),
   ];
@@ -55,3 +55,4 @@ class AppBottomNavigation extends StatelessWidget {
     );
   }
 }
+

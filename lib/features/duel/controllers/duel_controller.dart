@@ -1,4 +1,4 @@
-// duel_controller.dart
+﻿
 import 'package:flutter/foundation.dart';
 import '../../contexts/models/context_model.dart';
 import '../../foods/models/food_model.dart';
@@ -11,10 +11,8 @@ class DuelController extends ChangeNotifier {
 
   DuelController({required this.repository});
 
-  // Estado
   List<ContextModel> _contexts = [];
-  
-  // Itens do duelo (podem ser Food ou NutritionistTip)
+
   dynamic _itemA; // FoodModel ou NutritionistTipsModel
   dynamic _itemB; // FoodModel ou NutritionistTipsModel
   dynamic _correctItem; // Item que é a resposta correta
@@ -24,6 +22,10 @@ class DuelController extends ChangeNotifier {
   String? _correctItemType; // 'food' ou 'nutritionist_tip'
   
   DuelModel? _currentDuel;
+  List<DuelModel> _duelsInOrder = [];
+  int _currentDuelIndex = 0;
+  int _duelsPlayed = 0;
+  int _duelsAvailableForContext = 0;
   String? _selectedItemId;
 
   bool _isLoading = false;
@@ -39,7 +41,6 @@ class DuelController extends ChangeNotifier {
   String? _currentContextId;
   String? _currentContextName;
 
-  // Getters
   List<ContextModel> get contexts => _contexts;
   dynamic get itemA => _itemA;
   dynamic get itemB => _itemB;
@@ -49,6 +50,10 @@ class DuelController extends ChangeNotifier {
   String? get correctItemType => _correctItemType;
   DuelModel? get currentDuel => _currentDuel;
   String? get selectedItemId => _selectedItemId;
+  int get duelsPlayed => _duelsPlayed;
+  int get duelsAvailableForContext => _duelsAvailableForContext;
+  bool get isDuelLimitReached =>
+      _duelsAvailableForContext > 0 && _duelsPlayed >= _duelsAvailableForContext;
   bool get isLoading => _isLoading;
   bool get showResult => _showResult;
   bool? get isCorrect => _isCorrect;
@@ -59,8 +64,7 @@ class DuelController extends ChangeNotifier {
   int get totalGames => _totalGames;
   String? get currentContextId => _currentContextId;
   String? get currentContextName => _currentContextName;
-  
-  // 🔥 DESCRIPTION do item correto (explicação) 🔥
+
   String get description {
     if (_correctItem == null) return '';
     
@@ -73,7 +77,6 @@ class DuelController extends ChangeNotifier {
     return '';
   }
 
-  // ============= GETTERS PARA ITEM A =============
   
   String get itemAName {
     if (_itemA is FoodModel) return (_itemA as FoodModel).name;
@@ -107,7 +110,6 @@ class DuelController extends ChangeNotifier {
   bool get isItemAFood => _itemA is FoodModel;
   bool get isItemANutritionistTip => _itemA is NutritionistTipsModel;
 
-  // ============= GETTERS PARA ITEM B =============
   
   String get itemBName {
     if (_itemB is FoodModel) return (_itemB as FoodModel).name;
@@ -141,7 +143,6 @@ class DuelController extends ChangeNotifier {
   bool get isItemBFood => _itemB is FoodModel;
   bool get isItemBNutritionistTip => _itemB is NutritionistTipsModel;
 
-  // ============= MÉTODOS DE CARREGAMENTO =============
 
   Future<void> loadContexts() async {
     if (_isLoading) return;
@@ -153,7 +154,7 @@ class DuelController extends ChangeNotifier {
       _contexts = await repository.getContexts();
     } catch (e) {
       _setError('Não foi possível carregar os contextos.');
-      debugPrint('❌ Erro ao carregar contextos: $e');
+
     } finally {
       _setLoading(false);
     }
@@ -162,6 +163,8 @@ class DuelController extends ChangeNotifier {
   Future<void> loadDuel(String contextId, {String? contextName}) async {
     if (contextId.trim().isEmpty) return;
 
+    _duelsPlayed = 0;
+    _duelsAvailableForContext = 0;
     _resetDuelState();
     _setLoading(true);
     _clearError();
@@ -172,10 +175,10 @@ class DuelController extends ChangeNotifier {
 
       final contextDuels = await repository.getDuelsByContext(contextId);
 
-      debugPrint('🔍 Duelos encontrados para contexto $contextName (ID: $contextId): ${contextDuels.length}');
-
       if (contextDuels.isEmpty) {
         _currentDuel = null;
+        _duelsInOrder = [];
+        _currentDuelIndex = 0;
         _setError('Não há duelos disponíveis para este contexto.');
       } else {
         final validDuels = contextDuels.where((duel) =>
@@ -184,35 +187,30 @@ class DuelController extends ChangeNotifier {
 
         if (validDuels.isEmpty) {
           _currentDuel = null;
+          _duelsInOrder = [];
+          _currentDuelIndex = 0;
           _setError('Não há duelos válidos disponíveis para este contexto.');
-          debugPrint('⚠️ Todos os duelos têm IDs de alimentos vazios!');
+
         } else {
-          validDuels.shuffle();
-          _currentDuel = validDuels.first;
+          _duelsInOrder = _sortDuels(validDuels);
+          _duelsAvailableForContext = _duelsInOrder.length;
+          _currentDuelIndex = 0;
+          _currentDuel = _duelsInOrder[_currentDuelIndex];
 
-          debugPrint('🎯 Duelo selecionado: ${_currentDuel!.id}');
-          debugPrint('🍎 FoodA ID: ${_currentDuel!.foodAId}');
-          debugPrint('🍎 FoodB ID: ${_currentDuel!.foodBId}');
-          debugPrint('✅ Correct Answer ID: ${_currentDuel!.correctAnswerId}');
-
-          // Carregar os dois itens do duelo
           await _loadDuelItems(_currentDuel!);
 
-          debugPrint('✅ ItemA: ${itemAName} (${_itemAType})');
-          debugPrint('✅ ItemB: ${itemBName} (${_itemBType})');
-          debugPrint('📝 Description (explicação): $description');
         }
       }
     } catch (e) {
       _setError('Não foi possível carregar o duelo.');
-      debugPrint('❌ Erro ao carregar duelo: $e');
+
     } finally {
       _setLoading(false);
     }
   }
 
   Future<void> _loadDuelItems(DuelModel duel) async {
-    // Carregar Item A
+
     final itemAResult = await repository.getItemById(duel.foodAId);
     if (itemAResult != null) {
       _itemA = itemAResult.item;
@@ -220,17 +218,16 @@ class DuelController extends ChangeNotifier {
       
       if (_itemA is FoodModel) {
         final food = _itemA as FoodModel;
-        debugPrint('✅ Item A (Food): ${food.name}');
+
       } else if (_itemA is NutritionistTipsModel) {
         final tip = _itemA as NutritionistTipsModel;
-        debugPrint('✅ Item A (NutritionistTip): ${tip.dish} - ${tip.description}');
+
       }
     } else {
-      debugPrint('⚠️ ItemA não encontrado! ID: ${duel.foodAId}');
+
       _setError('Item A não encontrado.');
     }
 
-    // Carregar Item B
     final itemBResult = await repository.getItemById(duel.foodBId);
     if (itemBResult != null) {
       _itemB = itemBResult.item;
@@ -238,37 +235,69 @@ class DuelController extends ChangeNotifier {
       
       if (_itemB is FoodModel) {
         final food = _itemB as FoodModel;
-        debugPrint('✅ Item B (Food): ${food.name}');
+
       } else if (_itemB is NutritionistTipsModel) {
         final tip = _itemB as NutritionistTipsModel;
-        debugPrint('✅ Item B (NutritionistTip): ${tip.dish} - ${tip.description}');
+
       }
     } else {
-      debugPrint('⚠️ ItemB não encontrado! ID: ${duel.foodBId}');
+
       _setError('Item B não encontrado.');
     }
 
-    // 🔥 CARREGAR O ITEM CORRETO (para pegar a description) 🔥
-    final correctItemResult = await repository.getItemById(duel.correctAnswerId);
-    if (correctItemResult != null) {
-      _correctItem = correctItemResult.item;
-      _correctItemType = correctItemResult.type;
-      
+    final resolvedCorrectId = duel.correctAnswerId.trim();
+    final fallbackLabel = duel.correctAnswerLabel.trim();
+
+    if (resolvedCorrectId.isNotEmpty && _looksLikeDocumentId(resolvedCorrectId)) {
+      final correctItemResult = await repository.getItemById(resolvedCorrectId);
+      if (correctItemResult != null) {
+        _correctItem = correctItemResult.item;
+        _correctItemType = correctItemResult.type;
+      }
+    } else if (fallbackLabel.isNotEmpty) {
+      final normalizedFallback = _normalizeName(fallbackLabel);
+      if (_itemA != null && _normalizeName(itemAName) == normalizedFallback) {
+        _correctItem = _itemA;
+        _correctItemType = _itemAType;
+      } else if (_itemB != null && _normalizeName(itemBName) == normalizedFallback) {
+        _correctItem = _itemB;
+        _correctItemType = _itemBType;
+      }
+    }
+
+    if (_correctItem == null) {
+      if (_itemA != null && _itemB != null) {
+        final itemANameNormalized = _normalizeName(itemAName);
+        final itemBNameNormalized = _normalizeName(itemBName);
+        final fallbackSelected = _normalizeName(fallbackLabel);
+
+        if (fallbackSelected.isNotEmpty) {
+          if (itemANameNormalized == fallbackSelected) {
+            _correctItem = _itemA;
+            _correctItemType = _itemAType;
+          } else if (itemBNameNormalized == fallbackSelected) {
+            _correctItem = _itemB;
+            _correctItemType = _itemBType;
+          }
+        }
+      }
+    }
+
+    if (_correctItem != null) {
       if (_correctItem is FoodModel) {
         final food = _correctItem as FoodModel;
-        debugPrint('✅ Item Correto (Food): ${food.name} - Description: ${food.description}');
+
       } else if (_correctItem is NutritionistTipsModel) {
         final tip = _correctItem as NutritionistTipsModel;
-        debugPrint('✅ Item Correto (NutritionistTip): ${tip.dish} - Description: ${tip.description}');
+
       }
     } else {
-      debugPrint('⚠️ Item Correto não encontrado! ID: ${duel.correctAnswerId}');
+
     }
 
     notifyListeners();
   }
 
-  // ============= MÉTODOS DE INTERAÇÃO =============
 
   void selectItem(String itemId) {
     if (_showResult) return;
@@ -278,21 +307,85 @@ class DuelController extends ChangeNotifier {
 
   void showDuelResult() {
     if (_selectedItemId == null || _currentDuel == null) return;
-    _isCorrect = _selectedItemId == _currentDuel!.correctAnswerId;
+
+    final duel = _currentDuel!;
+    final correctId = duel.correctFoodId.trim();
+    final selectedId = _selectedItemId!.trim();
+    final correctLabel = duel.correctAnswerLabel.trim();
+
+    final selectedName = _selectedItemName();
+    final correctNameFromLabel = correctLabel.isNotEmpty ? _normalizeName(correctLabel) : '';
+    final correctNameFromIds =
+        correctId.isNotEmpty && _looksLikeDocumentId(correctId)
+            ? _normalizeName(_itemNameById(correctId))
+            : '';
+
+    bool isCorrect = selectedId == correctId;
+
+    if (!isCorrect && correctNameFromLabel.isNotEmpty) {
+      isCorrect = _normalizeName(selectedName) == correctNameFromLabel;
+    }
+
+    if (!isCorrect && correctNameFromIds.isNotEmpty) {
+      isCorrect = _normalizeName(selectedName) == correctNameFromIds;
+    }
+
+    if (!isCorrect && _itemA != null && _itemB != null) {
+      final leftName = _normalizeName(itemAName);
+      final rightName = _normalizeName(itemBName);
+      if (_normalizeName(selectedName) == leftName && leftName == correctNameFromLabel) {
+        isCorrect = true;
+      } else if (_normalizeName(selectedName) == rightName && rightName == correctNameFromLabel) {
+        isCorrect = true;
+      }
+    }
+
+    _isCorrect = isCorrect;
     _showResult = true;
     notifyListeners();
   }
 
-  Future<void> newDuel() async {
+  void registerCompletedDuel() {
+    if (_duelsAvailableForContext > 0 && _duelsPlayed < _duelsAvailableForContext) {
+      _duelsPlayed++;
+    }
+    notifyListeners();
+  }
+
+  Future<void> restartCurrentContext() async {
     if (_currentContextId == null || _currentContextId!.isEmpty) {
-      debugPrint('⚠️ newDuel: currentContextId é null ou vazio');
       return;
     }
-    debugPrint('🔄 Novo duelo para contexto: $_currentContextName (ID: $_currentContextId)');
+
+    _duelsPlayed = 0;
     await loadDuel(_currentContextId!, contextName: _currentContextName);
   }
 
-  // ============= MÉTODOS DE SALVAR RESULTADO =============
+  Future<void> newDuel() async {
+    if (_currentContextId == null || _currentContextId!.isEmpty) {
+      return;
+    }
+
+    if (isDuelLimitReached) {
+      return;
+    }
+
+    if (_duelsInOrder.isEmpty) {
+      await loadDuel(_currentContextId!, contextName: _currentContextName);
+      return;
+    }
+
+    _currentDuelIndex = (_currentDuelIndex + 1) % _duelsInOrder.length;
+    _currentDuel = _duelsInOrder[_currentDuelIndex];
+    _selectedItemId = null;
+    _showResult = false;
+    _isCorrect = null;
+    _errorMessage = null;
+
+    await _loadDuelItems(_currentDuel!);
+    notifyListeners();
+  }
+
 
   Future<void> saveResult(String userId) async {
     if (_currentDuel == null || _selectedItemId == null || userId.trim().isEmpty) return;
@@ -308,7 +401,6 @@ class DuelController extends ChangeNotifier {
         userId: userId,
         isWinner: isWinner,
       );
-      debugPrint('✅ Progresso do duelo salvo em user_duel_progress');
 
       if (isWinner) {
         _wins++;
@@ -316,16 +408,15 @@ class DuelController extends ChangeNotifier {
         _losses++;
       }
       _totalGames++;
-      debugPrint('📊 Estatísticas: Vitórias: $_wins, Derrotas: $_losses, Total: $_totalGames');
+
     } catch (e) {
-      debugPrint('❌ Erro ao salvar resultado: $e');
+
     } finally {
       _isSaving = false;
       notifyListeners();
     }
   }
 
-  // ============= MÉTODOS DE ESTATÍSTICAS =============
 
   Future<void> loadUserStats(String userId) async {
     try {
@@ -334,22 +425,20 @@ class DuelController extends ChangeNotifier {
         _wins = progress.wins;
         _losses = progress.losses;
         _totalGames = progress.totalGames;
-        debugPrint('📊 Estatísticas carregadas: Vitórias: $_wins, Derrotas: $_losses, Total: $_totalGames');
+
         notifyListeners();
       }
     } catch (e) {
-      debugPrint('❌ Erro ao carregar estatísticas: $e');
+
     }
   }
 
-  // ============= STREAMS EM TEMPO REAL =============
 
   void listenToDuels(String contextId) {
     repository.streamDuelsByContext(contextId).listen(
       (updatedDuels) async {
         if (updatedDuels.isNotEmpty) {
-          debugPrint('🔄 Duelos atualizados em tempo real: ${updatedDuels.length}');
-          
+
           if (_currentDuel != null) {
             final stillExists = updatedDuels.any((d) => d.id == _currentDuel!.id);
             if (!stillExists && updatedDuels.isNotEmpty) {
@@ -386,17 +475,56 @@ class DuelController extends ChangeNotifier {
           _wins = progress.wins;
           _losses = progress.losses;
           _totalGames = progress.totalGames;
-          debugPrint('📊 Estatísticas atualizadas em tempo real: Vitórias: $_wins, Derrotas: $_losses, Total: $_totalGames');
+
           notifyListeners();
         }
       },
       onError: (error) {
-        debugPrint('❌ Erro no stream de progresso: $error');
+
       },
     );
   }
 
-  // ============= MÉTODOS AUXILIARES =============
+
+  String _selectedItemName() {
+    if (_selectedItemId == null || _currentDuel == null) {
+      return '';
+    }
+
+    if (_selectedItemId == _currentDuel!.foodAId) return itemAName;
+    if (_selectedItemId == _currentDuel!.foodBId) return itemBName;
+    return '';
+  }
+
+  String _itemNameById(String itemId) {
+    if (_currentDuel == null) return '';
+    if (itemId == _currentDuel!.foodAId) return itemAName;
+    if (itemId == _currentDuel!.foodBId) return itemBName;
+    return '';
+  }
+
+  bool _looksLikeDocumentId(String value) {
+    if (value.trim().isEmpty) return false;
+    return RegExp(r'^[A-Za-z0-9_-]{8,}$').hasMatch(value.trim());
+  }
+
+  List<DuelModel> _sortDuels(List<DuelModel> duels) {
+    final sorted = List<DuelModel>.from(duels);
+    sorted.sort((a, b) {
+      final orderComparison = a.order.compareTo(b.order);
+      if (orderComparison != 0) return orderComparison;
+      return a.id.compareTo(b.id);
+    });
+    return sorted;
+  }
+
+  String _normalizeName(String value) {
+    return value
+        .toLowerCase()
+        .replaceAll(RegExp(r'[^a-z0-9]+'), ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+  }
 
   void _resetDuelState() {
     _selectedItemId = null;
@@ -410,6 +538,8 @@ class DuelController extends ChangeNotifier {
     _itemBType = null;
     _correctItemType = null;
     _currentDuel = null;
+    _duelsInOrder = [];
+    _currentDuelIndex = 0;
     _errorMessage = null;
   }
 
@@ -435,6 +565,8 @@ class DuelController extends ChangeNotifier {
     _totalGames = 0;
     _currentContextId = null;
     _currentContextName = null;
+    _duelsInOrder = [];
+    _currentDuelIndex = 0;
     _isLoading = false;
     notifyListeners();
   }
@@ -444,3 +576,4 @@ class DuelController extends ChangeNotifier {
     super.dispose();
   }
 }
+

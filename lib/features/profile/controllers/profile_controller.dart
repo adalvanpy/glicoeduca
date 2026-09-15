@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+﻿import 'package:flutter/foundation.dart';
 
 import '../../auth/models/user_model.dart';
 import '../repositories/profile_repository.dart';
@@ -88,3 +88,4 @@ class ProfileController extends ChangeNotifier {
     }
   }
 }
+

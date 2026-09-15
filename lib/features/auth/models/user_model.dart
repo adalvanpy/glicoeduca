@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+﻿import 'package:cloud_firestore/cloud_firestore.dart';
 
 class UserModel {
   final String id;
@@ -46,7 +46,6 @@ class UserModel {
     };
   }
 
-  // 🔥 CÓPIA COM DADOS ATUALIZADOS
   UserModel copyWith({
     String? name,
     String? avatar,
@@ -66,7 +65,6 @@ class UserModel {
     );
   }
 
-  // 🔥 PARA EXIBIÇÃO SEM A SENHA
   Map<String, dynamic> toPublicMap() {
     return {
       'id': id,
@@ -79,3 +77,4 @@ class UserModel {
     };
   }
 }
+

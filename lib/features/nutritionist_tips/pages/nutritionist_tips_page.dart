@@ -1,13 +1,15 @@
-// lib/features/nutritionist_tips/pages/nutritionist_tips_page.dart
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_routes.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/text_styles.dart';
 import '../../../core/widgets/bottom_navigation.dart';
+import '../../progress/repositories/user_progress_repository.dart';
 import '../controller/nutritionist_tips_controller.dart';
 import '../models/nutritionist_tips_model.dart';
 import '../repositories/nutritionist_tips_repository.dart';
+import '../services/nutritionist_tips_access_service.dart';
 
 class NutritionistTipsPage extends StatefulWidget {
   const NutritionistTipsPage({super.key});
@@ -19,6 +21,7 @@ class NutritionistTipsPage extends StatefulWidget {
 class _NutritionistTipsPageState extends State<NutritionistTipsPage> {
   late final NutritionistTipsController _controller;
   bool _isLoading = true;
+  bool _hasSavedProgress = false;
   String _selectedContextId = 'breakfast'; // Começa com o primeiro expandido
 
   @override
@@ -29,6 +32,22 @@ class _NutritionistTipsPageState extends State<NutritionistTipsPage> {
     );
     _controller.addListener(_refresh);
     _loadData();
+    _saveProgressIfNeeded();
+  }
+
+  Future<void> _saveProgressIfNeeded() async {
+    if (_hasSavedProgress) return;
+
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId == null || userId.isEmpty) return;
+
+    _hasSavedProgress = true;
+
+    await ProgressRepository().saveProgress(
+      userId: userId,
+      theoryTitle: 'Dicas de nutricionista',
+      progress: 1.0,
+    );
   }
 
   void _refresh() {
@@ -38,7 +57,15 @@ class _NutritionistTipsPageState extends State<NutritionistTipsPage> {
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
     await _controller.loadTips();
+    await _updateAccessState();
     setState(() => _isLoading = false);
+  }
+
+  Future<void> _updateAccessState() async {
+    final tipIds = _controller.tips.map((tip) => tip.id).toList();
+    await NutritionistTipsAccessService.canAccessGames(
+      allTipIds: tipIds,
+    );
   }
 
   @override
@@ -51,7 +78,7 @@ class _NutritionistTipsPageState extends State<NutritionistTipsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppTheme.backgroundColor,
       body: SafeArea(
         child: Column(
           children: [
@@ -71,16 +98,31 @@ class _NutritionistTipsPageState extends State<NutritionistTipsPage> {
             AppBottomNavigation(
               currentIndex: 1,
               onItemSelected: (index) {
-                if (index == 0) {
-                  Navigator.pushReplacementNamed(context, AppRoutes.homePage);
-                } else if (index == 1) {
-                  Navigator.pushReplacementNamed(context, AppRoutes.optionTheory);
-                } else if (index == 2) {
-                  Navigator.pushReplacementNamed(context, AppRoutes.instructionsDuel);
-                } else if (index == 3) {
-                  Navigator.pushReplacementNamed(context, AppRoutes.instructionsQuiz);
-                } else if (index == 4) {
-                  Navigator.pushReplacementNamed(context, AppRoutes.profile);
+                switch (index) {
+                  case 0:
+                    Navigator.pushReplacementNamed(context, AppRoutes.homePage);
+                    break;
+                  case 1:
+                    Navigator.pushReplacementNamed(
+                      context,
+                      AppRoutes.optionTheory,
+                    );
+                    break;
+                  case 2:
+                    Navigator.pushReplacementNamed(
+                      context,
+                      AppRoutes.instructionsDuel,
+                    );
+                    break;
+                  case 3:
+                    Navigator.pushReplacementNamed(
+                      context,
+                      AppRoutes.instructionsQuiz,
+                    );
+                    break;
+                  case 4:
+                    Navigator.pushReplacementNamed(context, AppRoutes.profile);
+                    break;
                 }
               },
             ),
@@ -94,27 +136,39 @@ class _NutritionistTipsPageState extends State<NutritionistTipsPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            RichText(
-              text: const TextSpan(
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                children: [
-                  TextSpan(text: 'Glico', style: TextStyles.logoRed),
-                  TextSpan(text: 'Educa', style: TextStyles.logoGreen),
-                ],
-              ),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: RichText(
+            text: const TextSpan(
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              children: [
+                TextSpan(text: 'Glico', style: TextStyles.logoRed),
+                TextSpan(text: 'Educa', style: TextStyles.logoGreen),
+              ],
             ),
-          ],
+          ),
         ),
-        const SizedBox(height: 16),
-        const Text(
-          'Alimentos indicados pela nutricionista para os contextos',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Colors.black87,
-            height: 1.3,
+        const SizedBox(height: 8),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: IconButton(
+            onPressed: () => Navigator.pop(context),
+            icon: const Icon(
+              Icons.arrow_back_ios_new_rounded,
+              size: 20,
+            ),
+            splashRadius: 20,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: const Text(
+            'Alimentos indicados pela nutricionista para os contextos',
+            style: TextStyles.pageTitle,
+            textAlign: TextAlign.left,
           ),
         ),
       ],
@@ -143,7 +197,6 @@ class _NutritionistTipsPageState extends State<NutritionistTipsPage> {
       );
     }
 
-    // Lista fixa na ordem ideal dos contextos para manter o padrão exato da imagem
     final List<String> orderedContexts = [
       'breakfast',
       'mid_morning',
@@ -155,7 +208,6 @@ class _NutritionistTipsPageState extends State<NutritionistTipsPage> {
       'supper',
     ];
 
-    // Agrupa as dicas por contexto
     final Map<String, List<NutritionistTipsModel>> groupedTips = {};
     for (var tip in _controller.tips) {
       final contextId = tip.contextId.isEmpty ? 'outros' : tip.contextId;
@@ -165,19 +217,18 @@ class _NutritionistTipsPageState extends State<NutritionistTipsPage> {
       groupedTips[contextId]!.add(tip);
     }
 
-    // Garante que todos os contextos conhecidos apareçam na UI (mesmo vazios ou preenchidos)
     final contextsToDisplay = <String>[];
     for (var ctx in orderedContexts) {
       if (groupedTips.containsKey(ctx)) {
         contextsToDisplay.add(ctx);
       }
     }
-    // Adiciona eventuais extras que não estejam na lista ordenada
-    groupedTips.keys.forEach((ctx) {
+
+    for (final ctx in groupedTips.keys) {
       if (!contextsToDisplay.contains(ctx)) {
         contextsToDisplay.add(ctx);
       }
-    });
+    }
 
     return Column(
       children: contextsToDisplay.map((contextId) {
@@ -191,8 +242,10 @@ class _NutritionistTipsPageState extends State<NutritionistTipsPage> {
     final contextNames = {
       'breakfast': 'Café da manhã',
       'mid_morning': 'Lanche da manhã',
+      'morning_snack': 'Lanche da manhã',
       'lunch': 'Almoço',
       'afternoon_snack': 'Lanche da tarde',
+      'evening_snack': 'Ceia',
       'pre_workout': 'Pré atividade física',
       'post_workout': 'Pós atividade física',
       'dinner': 'Jantar',
@@ -209,115 +262,127 @@ class _NutritionistTipsPageState extends State<NutritionistTipsPage> {
     final isExpanded = _selectedContextId == contextId;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
-        color: Colors.grey.shade100,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppTheme.complexCardBorder, width: 1),
       ),
-      child: ExpansionTile(
-        key: Key('${contextId}_$isExpanded'),
-        initiallyExpanded: isExpanded,
-        onExpansionChanged: (expanded) {
-          setState(() {
-            _selectedContextId = expanded ? contextId : '';
-          });
-        },
-        title: Text(
-          contextName,
-          style: const TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.bold,
-            color: Colors.black87,
+      child: Theme(
+        data: Theme.of(context).copyWith(
+          dividerColor: Colors.transparent,
+          splashColor: Colors.transparent,
+          highlightColor: Colors.transparent,
+        ),
+        child: ExpansionTile(
+          key: Key('${contextId}_$isExpanded'),
+          initiallyExpanded: isExpanded,
+          onExpansionChanged: (expanded) {
+            setState(() {
+              _selectedContextId = expanded ? contextId : '';
+            });
+          },
+          title: Text(
+            contextName,
+            style: TextStyles.cardBodyText.copyWith(
+              color: Colors.black87,
+              fontWeight: FontWeight.w500,
+            ),
           ),
+          trailing: Icon(
+            isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+            color: Colors.black54,
+            size: 20,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          collapsedShape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+          childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+          children: [
+            if (tips.isEmpty)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8.0),
+                child: Text(
+                  'Nenhuma dica para este contexto.',
+                  style: TextStyle(fontSize: 13, color: Colors.grey),
+                ),
+              )
+            else
+              ...tips.map((tip) => _tipCard(tip)),
+          ],
         ),
-        trailing: Icon(
-          isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-          color: Colors.black54,
-        ),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        collapsedShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-        childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-        children: [
-          if (tips.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 8.0),
-              child: Text(
-                'Nenhuma dica para este contexto.',
-                style: TextStyle(fontSize: 13, color: Colors.grey),
-              ),
-            )
-          else
-            ...tips.map((tip) => _tipCard(tip)),
-        ],
       ),
     );
   }
 
   Widget _tipCard(NutritionistTipsModel tip) {
-    return Container(
-      margin: const EdgeInsets.only(top: 8),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.grey.shade200, width: 1),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              color: Colors.grey.shade100,
-            ),
-            child: tip.image.isNotEmpty
-                ? ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Image.network(
-                      tip.image,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => const Icon(
-                        Icons.restaurant,
-                        size: 24,
-                        color: AppTheme.primaryColor,
+    return InkWell(
+      onTap: () async {
+        await NutritionistTipsAccessService.markTipAsViewed(tip.id);
+        await _updateAccessState();
+
+        if (!mounted) return;
+
+        await Navigator.pushNamed(
+          context,
+          AppRoutes.nutritionistTipsDetails,
+          arguments: tip,
+        );
+      },
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        margin: const EdgeInsets.only(top: 8),
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: AppTheme.complexCardBackground.withValues(alpha: 0.2),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                color: const Color(0xFFEAF7EC),
+              ),
+              child: tip.image.isNotEmpty
+                  ? ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.network(
+                        tip.image,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) => const Icon(
+                          Icons.restaurant,
+                          size: 22,
+                          color: AppTheme.primaryColor,
+                        ),
                       ),
+                    )
+                  : const Icon(
+                      Icons.restaurant,
+                      size: 22,
+                      color: AppTheme.primaryColor,
                     ),
-                  )
-                : const Icon(
-                    Icons.restaurant,
-                    size: 24,
-                    color: AppTheme.primaryColor,
-                  ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  tip.dish,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  tip.description,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey.shade600,
-                    height: 1.3,
-                  ),
-                ),
-              ],
             ),
-          ),
-        ],
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                tip.dish,
+                style: TextStyles.cardTitle.copyWith(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            const Icon(Icons.chevron_right, color: Colors.black54, size: 20),
+          ],
+        ),
       ),
     );
   }

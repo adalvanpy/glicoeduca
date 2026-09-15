@@ -1,4 +1,4 @@
-import 'package:firebase_auth/firebase_auth.dart';
+﻿import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/text_styles.dart';
@@ -27,8 +27,6 @@ class _EditNamePageState extends State<EditNamePage> {
     if (!mounted) return;
     if (_name.text.isEmpty && _controller.profile != null) {
       setState(() => _name.text = _controller.profile!.name);
-    } else {
-      setState(() {});
     }
   }
 
@@ -78,3 +76,4 @@ class _EditNamePageState extends State<EditNamePage> {
     }
   }
 }
+

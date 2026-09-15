@@ -1,4 +1,4 @@
-// lib/features/foods/controller/food_controller.dart
+﻿
 import 'package:flutter/foundation.dart';
 import '../models/food_model.dart';
 import '../repositories/food_repository.dart';
@@ -14,42 +14,43 @@ class FoodController extends ChangeNotifier {
   String? errorMessage;
 
   Future<void> loadFoods() async {
-    isLoading = true;
-    errorMessage = null;
-    notifyListeners();
-
-    try {
-      foods = await repository.getFoods();
-      if (foods.isEmpty) {
-        errorMessage = 'Nenhum alimento disponível.';
-      }
-    } catch (e) {
-      errorMessage = 'Não foi possível carregar os alimentos.';
-    } finally {
-      isLoading = false;
-      notifyListeners();
-    }
+    await _loadFoods(
+      fetcher: repository.getFoods,
+      emptyMessage: 'Nenhum alimento disponível.',
+    );
   }
 
   Future<void> loadFoodsFiltered({
     String? category,
+    String? carbohydrateType,
     String? glycemicIndexClassification,
     String? glycemicLoadClassification,
+  }) async {
+    await _loadFoods(
+      fetcher: () => repository.getFoodsFiltered(
+        category: category,
+        carbohydrateType: carbohydrateType,
+        glycemicIndexClassification: glycemicIndexClassification,
+        glycemicLoadClassification: glycemicLoadClassification,
+      ),
+      emptyMessage: 'Nenhum alimento encontrado com os filtros aplicados.',
+    );
+  }
+
+  Future<void> _loadFoods({
+    required Future<List<FoodModel>> Function() fetcher,
+    required String emptyMessage,
   }) async {
     isLoading = true;
     errorMessage = null;
     notifyListeners();
 
     try {
-      foods = await repository.getFoodsFiltered(
-        category: category,
-        glycemicIndexClassification: glycemicIndexClassification,
-        glycemicLoadClassification: glycemicLoadClassification,
-      );
+      foods = await fetcher();
       if (foods.isEmpty) {
-        errorMessage = 'Nenhum alimento encontrado com os filtros aplicados.';
+        errorMessage = emptyMessage;
       }
-    } catch (e) {
+    } catch (_) {
       errorMessage = 'Não foi possível carregar os alimentos.';
     } finally {
       isLoading = false;

@@ -1,4 +1,4 @@
-
+﻿
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -34,9 +34,8 @@ class _LoginPageState extends State<LoginPage> {
     if (!mounted) return;
 
     if (_controller.errorMessage == null && _controller.user != null) {
-      // 🔥 VERIFICA O JWT
+
       final token = await FirebaseAuth.instance.currentUser?.getIdToken();
-      print('🔑 JWT gerado: ${token?.substring(0, 30)}...');
 
       if (mounted) {
         Navigator.pushReplacementNamed(context, AppRoutes.homePage);

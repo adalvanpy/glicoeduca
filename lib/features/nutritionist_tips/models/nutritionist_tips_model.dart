@@ -1,4 +1,4 @@
-class NutritionistTipsModel {
+﻿class NutritionistTipsModel {
   final String id;
   final String contextId;
   final String description;

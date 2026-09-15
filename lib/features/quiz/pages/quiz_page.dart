@@ -1,4 +1,4 @@
-import 'package:firebase_auth/firebase_auth.dart';
+﻿import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_routes.dart';
@@ -56,7 +56,8 @@ class _QuizPageState extends State<QuizPage> {
   @override
   Widget build(BuildContext context) {
     final question = _controller.currentQuestion;
-    
+    final hasQuestion = question != null;
+
     return Scaffold(
       body: SafeArea(
         child: Column(
@@ -64,12 +65,12 @@ class _QuizPageState extends State<QuizPage> {
             Expanded(
               child: _controller.isLoading
                   ? const Center(child: CircularProgressIndicator())
-                  : question == null 
-                      ? _message() 
-                      : SingleChildScrollView(
+                  : hasQuestion
+                      ? SingleChildScrollView(
                           padding: const EdgeInsets.fromLTRB(22, 26, 22, 12),
-                          child: _content(question),
-                        ),
+                          child: _content(question!),
+                        )
+                      : _message(),
             ),
             _bottom(),
           ],
@@ -101,8 +102,11 @@ class _QuizPageState extends State<QuizPage> {
     final isAnswered = _controller.selectedAnswer != null;
     final isCorrect = _controller.selectedAnswerIsCorrect;
     final correctAnswer = question.correctAnswer;
-    
-    // Pega todas as opções
+    final isLastQuestion = _controller.currentIndex == _controller.quizzes.length - 1;
+    final buttonColor = _controller.selectedAnswer != null
+        ? AppTheme.primaryColor
+        : Colors.grey.shade300;
+
     final options = [
       question.optionA,
       question.optionB,
@@ -113,11 +117,17 @@ class _QuizPageState extends State<QuizPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Row(
-          children: [
-            Text('Glico', style: TextStyles.logoRed),
-            Text('Educa', style: TextStyles.logoGreen),
-          ],
+        Align(
+          alignment: Alignment.centerLeft,
+          child: RichText(
+            text: const TextSpan(
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              children: [
+                TextSpan(text: 'Glico', style: TextStyles.logoRed),
+                TextSpan(text: 'Educa', style: TextStyles.logoGreen),
+              ],
+            ),
+          ),
         ),
         const SizedBox(height: 25),
         const Text('Quiz', style: TextStyles.pageTitle),
@@ -160,7 +170,7 @@ class _QuizPageState extends State<QuizPage> {
           style: TextStyles.question,
         ),
         const SizedBox(height: 18),
-        // 🔥 OPÇÕES COM FEEDBACK
+
         ...options.map((answer) => _answerOption(
           answer: answer.toString(),
           isSelected: _controller.selectedAnswer == answer,
@@ -168,7 +178,7 @@ class _QuizPageState extends State<QuizPage> {
           isCorrect: isCorrect,
           correctAnswer: correctAnswer,
         )),
-        // 🔥 FEEDBACK DA RESPOSTA
+
         if (isAnswered) ...[
           const SizedBox(height: 16),
           _feedbackCard(isCorrect, question.explanation),
@@ -179,9 +189,7 @@ class _QuizPageState extends State<QuizPage> {
           child: ElevatedButton(
             onPressed: _controller.selectedAnswer == null ? null : _next,
             style: ElevatedButton.styleFrom(
-              backgroundColor: _controller.selectedAnswer != null 
-                  ? AppTheme.primaryColor 
-                  : Colors.grey.shade300,
+              backgroundColor: buttonColor,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 14),
               shape: RoundedRectangleBorder(
@@ -189,9 +197,7 @@ class _QuizPageState extends State<QuizPage> {
               ),
             ),
             child: Text(
-              _controller.currentIndex == _controller.quizzes.length - 1 
-                ? 'Ver resultado' 
-                : 'Próxima',
+              isLastQuestion ? 'Ver resultado' : 'Próxima',
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
@@ -203,7 +209,6 @@ class _QuizPageState extends State<QuizPage> {
     );
   }
 
-  // 🔥 OPÇÃO COM FEEDBACK VISUAL
   Widget _answerOption({
     required String answer,
     required bool isSelected,
@@ -222,32 +227,32 @@ class _QuizPageState extends State<QuizPage> {
       final isWrongSelected = isSelected && !isCorrect;
 
       if (isCorrectAnswer) {
-        // ✅ RESPOSTA CORRETA (verde)
+
         borderColor = AppTheme.successColor;
         bgColor = const Color(0xFFE8F5E9);
         icon = Icons.check_circle;
         iconColor = AppTheme.successColor;
       } else if (isWrongSelected) {
-        // ❌ RESPOSTA ERRADA SELECIONADA (vermelho)
+
         borderColor = Colors.red;
         bgColor = const Color(0xFFFFEBEE);
         icon = Icons.cancel;
         iconColor = Colors.red;
       } else if (isSelected) {
-        // ⚠️ SE SELECIONOU E ESTÁ CORRETO (já tratado acima)
+
         borderColor = AppTheme.successColor;
         bgColor = const Color(0xFFE8F5E9);
         icon = Icons.check_circle;
         iconColor = AppTheme.successColor;
       } else {
-        // OPÇÃO NÃO SELECIONADA (cinza)
+
         borderColor = Colors.grey.shade300;
         bgColor = Colors.white;
         icon = Icons.radio_button_off;
         iconColor = Colors.grey;
       }
     } else {
-      // ANTES DE RESPONDER
+
       if (isSelected) {
         borderColor = AppTheme.primaryColor;
         bgColor = const Color(0xFFE3F2FD);
@@ -289,7 +294,7 @@ class _QuizPageState extends State<QuizPage> {
                 ),
               ),
             ),
-            // 🔥 INDICADOR DE RESPOSTA CORRETA/ERRADA
+
             if (isAnswered && answer == correctAnswer)
               const Icon(
                 Icons.check_circle,
@@ -308,7 +313,6 @@ class _QuizPageState extends State<QuizPage> {
     );
   }
 
-  // 🔥 CARD DE FEEDBACK
   Widget _feedbackCard(bool isCorrect, String explanation) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -327,23 +331,13 @@ class _QuizPageState extends State<QuizPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(
-                isCorrect ? Icons.check_circle : Icons.cancel,
-                color: isCorrect ? AppTheme.successColor : Colors.red,
-                size: 22,
-              ),
-              const SizedBox(width: 10),
-              Text(
-                isCorrect ? '✅ Correto!' : '❌ Incorreto!',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: isCorrect ? AppTheme.successColor : Colors.red,
-                ),
-              ),
-            ],
+          Text(
+            isCorrect ? 'Correto!' : 'Incorreto!',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: isCorrect ? AppTheme.successColor : Colors.red,
+            ),
           ),
           if (explanation.isNotEmpty) ...[
             const SizedBox(height: 8),
@@ -376,12 +370,9 @@ class _QuizPageState extends State<QuizPage> {
 
   Future<void> _next() async {
     final userId = FirebaseAuth.instance.currentUser?.uid;
-      print('🔍 ====== QUIZ PAGE - NEXT ======');
-      print('🔍 FirebaseAuth.currentUser: ${FirebaseAuth.instance.currentUser}');
+
     await _controller.next(userId: userId);
-      print('🔍 userId: "$userId"');
-      print('🔍 userId é null? ${userId == null}');
-    
+
     if (!mounted || !_controller.isFinished) {
       return;
     }
@@ -401,14 +392,19 @@ class _QuizPageState extends State<QuizPage> {
     return AppBottomNavigation(
       currentIndex: 3,
       onItemSelected: (index) {
-        if (index == 0) {
-          Navigator.pushReplacementNamed(context, AppRoutes.homePage);
-        } else if (index == 1) {
-          Navigator.pushReplacementNamed(context, AppRoutes.optionTheory);
-        } else if (index == 2) {
-          Navigator.pushReplacementNamed(context, AppRoutes.instructionsDuel);
-        } else if (index == 4) {
-          Navigator.pushReplacementNamed(context, AppRoutes.profile);
+        switch (index) {
+          case 0:
+            Navigator.pushReplacementNamed(context, AppRoutes.homePage);
+            break;
+          case 1:
+            Navigator.pushReplacementNamed(context, AppRoutes.optionTheory);
+            break;
+          case 2:
+            Navigator.pushReplacementNamed(context, AppRoutes.instructionsDuel);
+            break;
+          case 4:
+            Navigator.pushReplacementNamed(context, AppRoutes.profile);
+            break;
         }
       },
     );

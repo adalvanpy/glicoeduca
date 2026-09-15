@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_routes.dart';
 import '../../../core/theme/text_styles.dart';
@@ -39,7 +39,7 @@ class _RegisterPageState extends State<RegisterPage> {
           backgroundColor: Colors.green,
         ),
       );
-      Navigator.pushReplacementNamed(context, AppRoutes.theory);
+      Navigator.pushReplacementNamed(context, AppRoutes.homePage);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -60,49 +60,66 @@ class _RegisterPageState extends State<RegisterPage> {
           children: [
             const Text('Preencha os campos para criar um usuário', style: TextStyles.bodySmall),
             const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: _name,
-                    decoration: const InputDecoration(
-                      hintText: 'Nome',
-                      border: OutlineInputBorder(),
+            Container(
+              padding: const EdgeInsets.all(0),
+              decoration: BoxDecoration(
+                border: Border.all(color: const Color(0xFFB8C5D9), width: 1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: _name,
+                      decoration: const InputDecoration(
+                        hintText: 'Nome',
+                        border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Informe seu nome';
+                        }
+                        if (value.trim().length < 3) {
+                          return 'Nome deve ter pelo menos 3 caracteres';
+                        }
+                        return null;
+                      },
                     ),
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Informe seu nome';
-                      }
-                      if (value.trim().length < 3) {
-                        return 'Nome deve ter pelo menos 3 caracteres';
-                      }
-                      return null;
-                    },
                   ),
-                ),
-                const SizedBox(width: 8),
-                SizedBox(
-                  width: 102,
-                  child: DropdownButtonFormField<String>(
-                    value: _sex,
-                    decoration: const InputDecoration(
-                      hintText: 'Sexo',
-                      border: OutlineInputBorder(),
+                  Container(
+                    width: 1,
+                    height: 46,
+                    color: const Color(0xFFB8C5D9),
+                  ),
+                  SizedBox(
+                    width: 104,
+                    child: DropdownButtonFormField<String>(
+                      initialValue: _sex,
+                      decoration: const InputDecoration(
+                        hintText: 'Sexo',
+                        border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                      ),
+                      items: const [
+                        DropdownMenuItem(value: 'M', child: Text('M')),
+                        DropdownMenuItem(value: 'F', child: Text('F')),
+                      ],
+                      onChanged: (value) => setState(() => _sex = value ?? 'M'),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Selecione o sexo';
+                        }
+                        return null;
+                      },
                     ),
-                    items: const [
-                      DropdownMenuItem(value: 'M', child: Text('M')),
-                      DropdownMenuItem(value: 'F', child: Text('F')),
-                    ],
-                    onChanged: (value) => setState(() => _sex = value ?? 'M'),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Selecione o sexo';
-                      }
-                      return null;
-                    },
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
             const SizedBox(height: 12),
             ListenableBuilder(
@@ -180,3 +197,4 @@ class _AuthShell extends StatelessWidget {
     );
   }
 }
+

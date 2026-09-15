@@ -1,4 +1,4 @@
-class QuestionModel {
+﻿class QuestionModel {
   final String id;
   final String question;
   final String optionA;
@@ -56,3 +56,4 @@ class QuestionModel {
   }
 
 }
+

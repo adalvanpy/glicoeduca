@@ -1,0 +1,260 @@
+{
+  "title": "Perguntas de alimentos e teorias de carboidratos",
+  "description": "Arquivo base para registro manual no banco. 10 perguntas por nível: fácil, médio e difícil.",
+  "levels": {
+    "facil": [
+      {
+        "id": "facil_01",
+        "category": ["carboidratos", "alimentos"],
+        "question": "Qual destes alimentos costuma ter maior quantidade de carboidratos por porção?",
+        "options": ["Arroz cozido", "Ovo", "Peixe grelhado", "Alface"],
+        "answer": "Arroz cozido",
+        "explanation": "O arroz é um alimento rico em carboidratos, especialmente amido, que é a principal fonte de energia do corpo."
+      },
+      {
+        "id": "facil_02",
+        "category": ["carboidratos", "alimentos"],
+        "question": "Qual alimento é uma boa fonte de carboidratos complexos?",
+        "options": ["Pão integral", "Refrigerante", "Bala", "Queijo"],
+        "answer": "Pão integral",
+        "explanation": "O pão integral contém carboidratos complexos e fibras, que são digeridos mais lentamente e ajudam na saciedade."
+      },
+      {
+        "id": "facil_03",
+        "category": ["índice glicêmico", "alimentos"],
+        "question": "Em geral, alimentos com índice glicêmico alto causam:",
+        "options": ["Aumento mais rápido da glicose no sangue", "Diminuição da glicose no sangue", "Nenhum efeito na glicemia", "Aumento exclusivo da pressão arterial"],
+        "answer": "Aumento mais rápido da glicose no sangue",
+        "explanation": "O índice glicêmico mede a velocidade com que um alimento eleva a glicose sanguínea após a ingestão."
+      },
+      {
+        "id": "facil_04",
+        "category": ["carboidratos", "teoria"],
+        "question": "A principal função dos carboidratos no organismo é:",
+        "options": ["Fornecer energia", "Formar hormônios do sono", "Produzir vitamina C", "Regular a temperatura corporal"],
+        "answer": "Fornecer energia",
+        "explanation": "Os carboidratos são a principal fonte de energia para o corpo, principalmente para o cérebro e para a atividade muscular."
+      },
+      {
+        "id": "facil_05",
+        "category": ["índice glicêmico", "alimentos"],
+        "question": "Qual destes alimentos costuma ter menor índice glicêmico?",
+        "options": ["Aveia", "Pão branco", "Biscoito recheado", "Coca-cola"],
+        "answer": "Aveia",
+        "explanation": "A aveia possui fibras e digestão mais lenta, o que geralmente resulta em menor elevação glicêmica comparada a alimentos refinados."
+      },
+      {
+        "id": "facil_06",
+        "category": ["alimentos", "carboidratos"],
+        "question": "Qual alimento é um exemplo de carboidrato simples?",
+        "options": ["Mel", "Feijão", "Quinoa", "Lentilha"],
+        "answer": "Mel",
+        "explanation": "Carboidratos simples são rapidamente digeridos; o mel é um exemplo clássico dessa categoria."
+      },
+      {
+        "id": "facil_07",
+        "category": ["carga glicêmica", "alimentos"],
+        "question": "A carga glicêmica leva em conta:",
+        "options": ["A quantidade do alimento consumida e a velocidade de elevação da glicose", "A temperatura do alimento", "A cor do alimento", "A quantidade de proteínas apenas"],
+        "answer": "A quantidade do alimento consumida e a velocidade de elevação da glicose",
+        "explanation": "A carga glicêmica combina o índice glicêmico com a quantidade ingerida do alimento."
+      },
+      {
+        "id": "facil_08",
+        "category": ["alimentos", "teoria"],
+        "question": "Qual dessas opções é geralmente considerada mais saudável em relação ao controle glicêmico?",
+        "options": ["Frutas integrais com casca", "Refrigerante de cola", "Bolo de chocolate", "Bala de caramelo"],
+        "answer": "Frutas integrais com casca",
+        "explanation": "Frutas inteiras contêm fibras e água, o que ajuda a reduzir a velocidade de absorção dos carboidratos."
+      },
+      {
+        "id": "facil_09",
+        "category": ["alimentos", "carboidratos"],
+        "question": "Qual destes alimentos é fonte importante de fibras e carboidratos?",
+        "options": ["Feijão", "Margarina", "Salgadinho", "Azeite"],
+        "answer": "Feijão",
+        "explanation": "O feijão oferece carboidratos e fibras, o que favorece a digestão mais lenta e a sensação de saciedade."
+      },
+      {
+        "id": "facil_10",
+        "category": ["índice glicêmico", "teoria"],
+        "question": "Um alimento com alto índice glicêmico não necessariamente é ruim para todos os casos, porque:",
+        "options": ["A quantidade consumida também influencia a resposta glicêmica", "Ele nunca causa elevação da glicose", "Ele deve ser evitado a qualquer custo", "Ele é sempre baixo em carboidratos"],
+        "answer": "A quantidade consumida também influencia a resposta glicêmica",
+        "explanation": "A mesma comida pode ter um efeito diferente dependendo da porção consumida e do contexto da refeição."
+      }
+    ],
+    "medio": [
+      {
+        "id": "medio_01",
+        "category": ["carga glicêmica", "alimentos"],
+        "question": "Uma banana madura pode ter efeito glicêmico mais alto do que uma banana menos madura porque:",
+        "options": ["A banana madura tem mais amido convertido em açúcares", "A banana madura tem menos carboidratos", "A banana menos madura tem mais fibras", "A banana madura contém menos água"],
+        "answer": "A banana madura tem mais amido convertido em açúcares",
+        "explanation": "A maturação aumenta a quantidade de carboidratos mais rapidamente absorvíveis, elevando a resposta glicêmica."
+      },
+      {
+        "id": "medio_02",
+        "category": ["índice glicêmico", "teoria"],
+        "question": "Qual fator mais influencia o índice glicêmico de um alimento?",
+        "options": ["Tipo de carboidrato e processamento do alimento", "Cor da embalagem", "Quantidade de sódio", "Tempo de cozimento da panela"],
+        "answer": "Tipo de carboidrato e processamento do alimento",
+        "explanation": "Alimentos refinados e menos fibrosos tendem a elevar a glicose mais rapidamente do que alimentos integrais e menos processados."
+      },
+      {
+        "id": "medio_03",
+        "category": ["carboidratos", "alimentos"],
+        "question": "Qual dessas refeições normalmente resulta em menor elevação da glicemia?",
+        "options": ["Arroz integral com feijão e legume", "Refrigerante com pão branco", "Bolo com café adoçado", "Batata frita com suco artificial"],
+        "answer": "Arroz integral com feijão e legume",
+        "explanation": "A combinação de fibras, carboidratos complexos e proteína tende a desacelerar a digestão e a absorção do açúcar."
+      },
+      {
+        "id": "medio_04",
+        "category": ["carga glicêmica", "teoria"],
+        "question": "Se um alimento tem índice glicêmico alto, mas é consumido em pequena quantidade, sua carga glicêmica pode ser:",
+        "options": ["Baixa ou moderada", "Sempre alta", "Sempre nula", "Igual ao valor calórico"],
+        "answer": "Baixa ou moderada",
+        "explanation": "A carga glicêmica considera a quantidade consumida; porções pequenas podem reduzir o impacto glicêmico mesmo com IG elevado."
+      },
+      {
+        "id": "medio_05",
+        "category": ["alimentos", "índice glicêmico"],
+        "question": "Qual alimento normalmente apresenta menor impacto glicêmico quando consumido em porção adequada?",
+        "options": ["Batata inglesa assada", "Batata inglesa frita", "Pão francês", "Bolo de chocolate"],
+        "answer": "Batata inglesa assada",
+        "explanation": "A forma de preparo e o processamento influenciam o impacto glicêmico; batata assada costuma ser menos agressiva que frita em relação à glicemia."
+      },
+      {
+        "id": "medio_06",
+        "category": ["carboidratos", "teoria"],
+        "question": "O que ocorre quando um alimento rico em fibras é consumido junto com carboidratos refinados?",
+        "options": ["A digestão fica mais lenta e a glicemia tende a subir menos", "A glicose cai imediatamente para zero", "O alimento deixa de ter calorias", "A fibra elimina todos os carboidratos"],
+        "answer": "A digestão fica mais lenta e a glicemia tende a subir menos",
+        "explanation": "A fibra retarda a digestão e a absorção dos carboidratos, diminuindo picos de glicose no sangue."
+      },
+      {
+        "id": "medio_07",
+        "category": ["alimentos", "índice glicêmico"],
+        "question": "Entre os alimentos abaixo, qual costuma ter maior índice glicêmico?",
+        "options": ["Pão branco", "Cenoura cozida", "Lentilha", "Feijão preto"],
+        "answer": "Pão branco",
+        "explanation": "Pães refinados são rapidamente digeridos e costumam gerar elevação mais rápida da glicemia."
+      },
+      {
+        "id": "medio_08",
+        "category": ["carboidratos", "alimentos"],
+        "question": "Qual das opções melhor representa um carboidrato complexo?",
+        "options": ["Quinoa", "Açúcar de mesa", "Melaço", "Suco concentrado"],
+        "answer": "Quinoa",
+        "explanation": "Carboidratos complexos têm estrutura mais lenta de digestão e geralmente mais nutrientes e fibras."
+      },
+      {
+        "id": "medio_09",
+        "category": ["carga glicêmica", "alimentos"],
+        "question": "Qual combinação tende a reduzir a carga glicêmica da refeição?",
+        "options": ["Adicionar leguminosas e verduras", "Adicionar só refrigerante", "Aumentar a quantidade de pão branco", "Eliminar todas as frutas"],
+        "answer": "Adicionar leguminosas e verduras",
+        "explanation": "Leguminosas e verduras aumentam a fibra e a sensação de saciedade, diminuindo a resposta glicêmica global da refeição."
+      },
+      {
+        "id": "medio_10",
+        "category": ["índice glicêmico", "teoria"],
+        "question": "O índice glicêmico é uma ferramenta útil porque mostra:",
+        "options": ["A rapidez da elevação da glicose após a ingestão do alimento", "A quantidade total de energia do alimento", "A quantidade de gordura presente no alimento", "A qualidade da proteína do alimento"],
+        "answer": "A rapidez da elevação da glicose após a ingestão do alimento",
+        "explanation": "IG compara a velocidade de elevação da glicemia, e não somente o valor calórico dos alimentos."
+      }
+    ],
+    "dificil": [
+      {
+        "id": "dificil_01",
+        "category": ["carga glicêmica", "teoria"],
+        "question": "Um alimento com índice glicêmico moderado pode ter carga glicêmica baixa se:",
+        "options": ["For consumido em porção pequena e com fibras ou proteínas", "For cozido em alta temperatura por muito tempo", "For totalmente refinado", "For consumido em jejum prolongado"],
+        "answer": "For consumido em porção pequena e com fibras ou proteínas",
+        "explanation": "A carga glicêmica considera tanto a qualidade do carboidrato quanto a quantidade ingerida, além do contexto da refeição."
+      },
+      {
+        "id": "dificil_02",
+        "category": ["alimentos", "carboidratos"],
+        "question": "Comparando arroz branco e arroz integral, o arroz integral tende a:",
+        "options": ["Elevar a glicemia de modo mais lento por conter mais fibras", "Elevar a glicemia mais rápido por conter mais açúcar", "Ser igual em tudo, independentemente da preparação", "Não ter carboidratos"],
+        "answer": "Elevar a glicemia de modo mais lento por conter mais fibras",
+        "explanation": "O arroz integral preserva mais estrutura física e fibras, tornando a digestão mais lenta e reduzindo picos glicêmicos."
+      },
+      {
+        "id": "dificil_03",
+        "category": ["índice glicêmico", "carga glicêmica"],
+        "question": "Por que dois alimentos podem ter o mesmo índice glicêmico, mas cargas glicêmicas diferentes?",
+        "options": ["Porque a carga glicêmica considera a porção consumida", "Porque o índice glicêmico mede calorias", "Porque a carga sempre ignora a quantidade", "Porque os alimentos têm mesma composição nutricional"],
+        "answer": "Porque a carga glicêmica considera a porção consumida",
+        "explanation": "Mesmo que dois alimentos provoquem elevação glicêmica semelhante por unidade, a quantidade efetivamente ingerida altera a carga total."
+      },
+      {
+        "id": "dificil_04",
+        "category": ["alimentos", "teoria"],
+        "question": "Qual das situações melhor demonstra o efeito da combinação de alimentos sobre a glicemia?",
+        "options": ["Feijão + arroz + salada gera resposta glicêmica mais estável do que arroz sozinho", "Bolo com café puro sempre reduz a glicemia", "Refrigerante com água não muda a resposta glicêmica", "Suco natural não tem carboidratos"],
+        "answer": "Feijão + arroz + salada gera resposta glicêmica mais estável do que arroz sozinho",
+        "explanation": "A presença de fibras, proteínas e verduras retarda a absorção dos carboidratos e melhora a estabilidade glicêmica."
+      },
+      {
+        "id": "dificil_05",
+        "category": ["alimentos", "carboidratos"],
+        "question": "Qual fator explica melhor por que uma dieta rica em alimentos processados pode elevar mais rapidamente a glicemia?",
+        "options": ["A moagem e refinamento removem fibras e reduzem a digestão lenta", "A comida processada tem menos calorias", "A comida processada tem mais proteína natural", "Os alimentos processados nunca têm carboidratos"],
+        "answer": "A moagem e refinamento removem fibras e reduzem a digestão lenta",
+        "explanation": "Processos como refinamento removem fibras e aumentam a velocidade de absorção dos carboidratos, elevando a glicemia mais rapidamente."
+      },
+      {
+        "id": "dificil_06",
+        "category": ["índice glicêmico", "alimentos"],
+        "question": "Qual preparação de batata normalmente apresenta maior resposta glicêmica?",
+        "options": ["Batata frita", "Batata assada inteira com casca", "Batata cozida com casca", "Batata crua"],
+        "answer": "Batata frita",
+        "explanation": "A fritura, o amido mais gelatinizado e a menor presença de fibra/estrutura fazem a batata frita causar subida glicêmica mais acentuada."
+      },
+      {
+        "id": "dificil_07",
+        "category": ["carga glicêmica", "teoria"],
+        "question": "Uma pessoa que consome uma porção grande de um alimento com índice glicêmico moderado pode apresentar:",
+        "options": ["Carga glicêmica alta mesmo sem índice glicêmico elevado", "Glicemia sempre constante", "Baixo consumo de carboidratos", "Nenhuma alteração na glicemia"],
+        "answer": "Carga glicêmica alta mesmo sem índice glicêmico elevado",
+        "explanation": "A carga glicêmica depende da quantidade ingerida, então porções maiores podem elevar a glicemia mesmo quando o IG é moderado."
+      },
+      {
+        "id": "dificil_08",
+        "category": ["alimentos", "índice glicêmico"],
+        "question": "Entre as opções abaixo, qual alimento costuma ter maior capacidade de causar pico glicêmico mais rápido no organismo?",
+        "options": ["Suco de laranja natural", "Laranja inteira", "Feijão cozido", "Salada de folhas"],
+        "answer": "Suco de laranja natural",
+        "explanation": "O suco concentra os açúcares e perde parte da fibra da fruta, acelerando a absorção e aumentando o pico glicêmico."
+      },
+      {
+        "id": "dificil_09",
+        "category": ["carboidratos", "teoria"],
+        "question": "Qual é a relação mais correta entre carboidratos, glicemia e saciedade?",
+        "options": ["Carboidratos complexos e ricos em fibras costumam gerar saciedade e respostas glicêmicas mais controladas", "Carboidratos simples sempre geram maior saciedade", "Fibras eliminam a necessidade de controlar a glicemia", "Carboidratos não influenciam a saciedade"],
+        "answer": "Carboidratos complexos e ricos em fibras costumam gerar saciedade e respostas glicêmicas mais controladas",
+        "explanation": "Carboidratos complexos e fibrosos são digeridos mais lentamente, promovem mais saciedade e ajudam na estabilidade da glicemia."
+      },
+      {
+        "id": "dificil_10",
+        "category": ["carga glicêmica", "índice glicêmico", "alimentos"],
+        "question": "Quando se avalia uma refeição completa, qual aspecto é fundamental para prever melhor a resposta glicêmica?",
+        "options": ["A combinação de carboidratos, fibras, proteínas e quantidade servida", "Apenas o sabor do alimento", "A temperatura da comida", "A presença de cor intensa"],
+        "answer": "A combinação de carboidratos, fibras, proteínas e quantidade servida",
+        "explanation": "A resposta glicêmica de uma refeição depende não só do alimento isolado, mas também da mistura de nutrientes e do tamanho da porção."
+      },
+      {
+        "id": "dificil_11",
+        "category": ["carga glicêmica", "índice glicêmico", "dica nutricionista"],
+        "question": "Dica de nutricionista: qual combinação ajuda mais a reduzir a carga glicêmica e o índice glicêmico da refeição?",
+        "options": ["Carboidrato refinado com bebida doce e sem fibra", "Arroz ou pão com feijão, salada e proteína", "Apenas sobremesa depois da refeição principal", "Trocar tudo por suco natural sem sólidos"],
+        "answer": "Arroz ou pão com feijão, salada e proteína",
+        "explanation": "O segredo está nas combinações: fibra, proteína e legumes desaceleram a digestão e reduzem o pico glicêmico, diminuindo também a carga glicêmica da refeição."
+      }
+    ]
+  }
+}

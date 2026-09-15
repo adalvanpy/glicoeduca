@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+﻿import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import '../models/avatar_model.dart';
 
@@ -8,23 +8,15 @@ class AvatarRepository {
   AvatarRepository({FirebaseFirestore? firestore})
       : _firestore = firestore ?? FirebaseFirestore.instance;
 
-  // Busca todos os avatares
   Future<List<AvatarModel>> getAvatars() async {
     try {
-      final snapshot = await _firestore
-          .collection('avatar')
-          .get();
-
-      return snapshot.docs.map((doc) {
-        return AvatarModel.fromMap(doc.data(), doc.id);
-      }).toList();
-    } catch (e) {
-      debugPrint('❌ Erro ao buscar avatares: $e');
+      final snapshot = await _firestore.collection('avatar').get();
+      return _toAvatarList(snapshot.docs);
+    } catch (_) {
       return [];
     }
   }
 
-  // Busca avatares por sexo
   Future<List<AvatarModel>> getAvatarsBySex(String sex) async {
     try {
       final snapshot = await _firestore
@@ -32,28 +24,26 @@ class AvatarRepository {
           .where('sex', isEqualTo: sex)
           .get();
 
-      return snapshot.docs.map((doc) {
-        return AvatarModel.fromMap(doc.data(), doc.id);
-      }).toList();
-    } catch (e) {
-      debugPrint('❌ Erro ao buscar avatares por sexo: $e');
+      return _toAvatarList(snapshot.docs);
+    } catch (_) {
       return [];
     }
   }
 
-  // Busca um avatar específico por ID
   Future<AvatarModel?> getAvatarById(String avatarId) async {
     try {
-      final doc = await _firestore
-          .collection('avatar')
-          .doc(avatarId)
-          .get();
+      final doc = await _firestore.collection('avatar').doc(avatarId).get();
 
       if (!doc.exists) return null;
       return AvatarModel.fromMap(doc.data()!, doc.id);
-    } catch (e) {
-      debugPrint('❌ Erro ao buscar avatar: $e');
+    } catch (_) {
       return null;
     }
+  }
+
+  List<AvatarModel> _toAvatarList(List<QueryDocumentSnapshot<Map<String, dynamic>>> docs) {
+    return docs
+        .map((doc) => AvatarModel.fromMap(doc.data(), doc.id))
+        .toList();
   }
 }

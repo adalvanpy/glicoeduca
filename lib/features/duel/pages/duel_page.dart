@@ -1,4 +1,4 @@
-// duel_page.dart
+﻿
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -8,15 +8,17 @@ import '../../../core/theme/text_styles.dart';
 import '../../../core/widgets/bottom_navigation.dart';
 
 import '../controllers/duel_controller.dart';
-import '../../foods/models/food_model.dart';
-import '../../nutritionist_tips/models/nutritionist_tips_model.dart';
 
 class DuelPage extends StatefulWidget {
   final DuelController controller;
+  final String? initialContextId;
+  final String? initialContextName;
 
   const DuelPage({
     super.key,
     required this.controller,
+    this.initialContextId,
+    this.initialContextName,
   });
 
   @override
@@ -31,36 +33,31 @@ class _DuelPageState extends State<DuelPage> {
   }
 
   Future<void> _loadInitialData() async {
-    // Carrega os contextos
     await widget.controller.loadContexts();
 
     if (widget.controller.contexts.isNotEmpty) {
-      // 🔥 PEGA OS ARGUMENTOS DA ROTA
       final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-      
-      // 🔥 DEBUG - MOSTRA O QUE CHEGOU
-      debugPrint('📦 Argumentos recebidos no DuelPage: $args');
-      
-      final contextId = args?['contextId'] as String?;
-      final contextName = args?['contextName'] as String?;
+      final routeContextId = args?['contextId'] as String?;
+      final routeContextName = args?['contextName'] as String?;
 
-      String? finalContextId;
-      String? finalContextName;
+      final selectedContextId =
+          (routeContextId != null && routeContextId.isNotEmpty)
+              ? routeContextId
+              : (widget.initialContextId != null && widget.initialContextId!.isNotEmpty
+                  ? widget.initialContextId!
+                  : widget.controller.contexts.first.id);
 
-      // 🔥 PRIORIZA O ID RECEBIDO
-      if (contextId != null && contextId.isNotEmpty) {
-        finalContextId = contextId;
-        finalContextName = contextName ?? 'Contexto';
-        debugPrint('✅ Usando contexto recebido: $finalContextName (ID: $finalContextId)');
-      } else {
-        // 🔥 FALLBACK: PRIMEIRO CONTEXTO
-        finalContextId = widget.controller.contexts.first.id;
-        finalContextName = widget.controller.contexts.first.name;
-        debugPrint('⚠️ Nenhum ID recebido, usando primeiro contexto: $finalContextName (ID: $finalContextId)');
-      }
+      final selectedContextName =
+          (routeContextName != null && routeContextName.isNotEmpty)
+              ? routeContextName
+              : (widget.initialContextName != null && widget.initialContextName!.isNotEmpty
+                  ? widget.initialContextName!
+                  : widget.controller.contexts.first.name);
 
-      // 🔥 CARREGA O DUELO COM O ID CORRETO
-      await widget.controller.loadDuel(finalContextId, contextName: finalContextName);
+      await widget.controller.loadDuel(
+        selectedContextId,
+        contextName: selectedContextName,
+      );
     }
   }
 
@@ -83,14 +80,19 @@ class _DuelPageState extends State<DuelPage> {
                 AppBottomNavigation(
                   currentIndex: 2,
                   onItemSelected: (index) {
-                    if (index == 1) {
-                      Navigator.pushReplacementNamed(context, AppRoutes.optionTheory);
-                    } else if (index == 3) {
-                      Navigator.pushReplacementNamed(context, AppRoutes.instructionsQuiz);
-                    } else if (index == 0) {
-                      Navigator.pushReplacementNamed(context, AppRoutes.homePage);
-                    } else if (index == 4) {
-                      Navigator.pushReplacementNamed(context, AppRoutes.profile);
+                    switch (index) {
+                      case 0:
+                        Navigator.pushReplacementNamed(context, AppRoutes.homePage);
+                        break;
+                      case 1:
+                        Navigator.pushReplacementNamed(context, AppRoutes.optionTheory);
+                        break;
+                      case 3:
+                        Navigator.pushReplacementNamed(context, AppRoutes.instructionsQuiz);
+                        break;
+                      case 4:
+                        Navigator.pushReplacementNamed(context, AppRoutes.profile);
+                        break;
                     }
                   },
                 ),
@@ -129,7 +131,7 @@ class _DuelPageState extends State<DuelPage> {
         const Text('Duelo entre alimentos', style: TextStyles.pageTitle),
         const SizedBox(height: 7),
         const Text(
-          'Escolha um contexto e selecione o alimento mais indicado. Depois, veja se você acertou!',
+          'Selecione o alimento mais indicado de acordo com o contexto escolhido e veja se você acertou!',
           style: TextStyles.description,
         ),
         const SizedBox(height: 20),
@@ -150,13 +152,16 @@ class _DuelPageState extends State<DuelPage> {
   }
 
   Widget _buildLogo() {
-    return RichText(
-      text: const TextSpan(
-        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-        children: [
-          TextSpan(text: 'Glico', style: TextStyles.logoRed),
-          TextSpan(text: 'Educa', style: TextStyles.logoGreen),
-        ],
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: RichText(
+        text: const TextSpan(
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          children: [
+            TextSpan(text: 'Glico', style: TextStyles.logoRed),
+            TextSpan(text: 'Educa', style: TextStyles.logoGreen),
+          ],
+        ),
       ),
     );
   }
@@ -199,10 +204,8 @@ class _DuelPageState extends State<DuelPage> {
           id: controller.currentDuel?.foodAId ?? '',
           isSelected: controller.selectedItemId == controller.currentDuel?.foodAId,
           isCorrect: controller.showResult 
-              ? controller.currentDuel?.foodAId == controller.currentDuel?.correctAnswerId
+              ? controller.currentDuel?.foodAId == controller.currentDuel?.correctFoodId
               : null,
-          typeLabel: controller.itemATypeLabel,
-          isFood: controller.isItemAFood,
         )),
         const SizedBox(width: 8),
         const Padding(
@@ -216,10 +219,8 @@ class _DuelPageState extends State<DuelPage> {
           id: controller.currentDuel?.foodBId ?? '',
           isSelected: controller.selectedItemId == controller.currentDuel?.foodBId,
           isCorrect: controller.showResult 
-              ? controller.currentDuel?.foodBId == controller.currentDuel?.correctAnswerId
+              ? controller.currentDuel?.foodBId == controller.currentDuel?.correctFoodId
               : null,
-          typeLabel: controller.itemBTypeLabel,
-          isFood: controller.isItemBFood,
         )),
       ],
     );
@@ -231,29 +232,16 @@ class _DuelPageState extends State<DuelPage> {
     required String id,
     required bool isSelected,
     required bool? isCorrect,
-    required String typeLabel,
-    required bool isFood,
   }) {
     final controller = widget.controller;
-    final bool showResult = controller.showResult;
-    final bool isWinner = isCorrect == true;
-    
-    Color borderColor = Colors.transparent;
-    double borderWidth = 0;
-    
-    if (showResult) {
-      if (isWinner) {
-        borderColor = AppTheme.successColor;
-        borderWidth = 4;
-      }
-    } else if (isSelected) {
-      borderColor = AppTheme.primaryColor;
-      borderWidth = 4;
-    }
+    final showResult = controller.showResult;
+    final isWinner = isCorrect == true;
 
-    // 🔥 COR E ÍCONE BASEADO NO TIPO 🔥
-    final Color typeColor = isFood ? Colors.blue : Colors.green;
-    final IconData typeIcon = isFood ? Icons.restaurant : Icons.health_and_safety;
+    final borderColor = showResult
+        ? (isWinner ? AppTheme.successColor : Colors.transparent)
+        : (isSelected ? AppTheme.primaryColor : Colors.transparent);
+
+    final borderWidth = borderColor == Colors.transparent ? 0.0 : 4.0;
 
     return GestureDetector(
       onTap: showResult ? null : () => controller.selectItem(id),
@@ -282,12 +270,20 @@ class _DuelPageState extends State<DuelPage> {
                         },
                         errorBuilder: (_, __, ___) => Container(
                           color: Colors.grey[200],
-                          child: Icon(typeIcon, size: 40, color: typeColor),
+                          child: const Icon(
+                            Icons.image_not_supported,
+                            size: 40,
+                            color: Colors.grey,
+                          ),
                         ),
                       )
                     : Container(
                         color: Colors.grey[200],
-                        child: Icon(typeIcon, size: 40, color: typeColor),
+                        child: const Icon(
+                          Icons.image_not_supported,
+                          size: 40,
+                          color: Colors.grey,
+                        ),
                       ),
               ),
               if (showResult && isWinner)
@@ -296,44 +292,16 @@ class _DuelPageState extends State<DuelPage> {
                   color: AppTheme.successColor,
                   size: 48,
                 ),
-              // 🔥 BADGE DO TIPO 🔥
-              Positioned(
-                top: 8,
-                right: 8,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: typeColor.withOpacity(0.9),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(typeIcon, size: 10, color: Colors.white),
-                      const SizedBox(width: 4),
-                      Text(
-                        typeLabel,
-                        style: const TextStyle(
-                          fontSize: 8,
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
             ],
           ),
           const SizedBox(height: 8),
           Text(
-            name, 
+            name,
             style: TextStyles.foodName.copyWith(
               color: showResult && isWinner ? AppTheme.successColor : null,
               fontWeight: FontWeight.bold,
             ),
           ),
-          // 🔥 REMOVIDO IG E CG 🔥
         ],
       ),
     );
@@ -341,37 +309,48 @@ class _DuelPageState extends State<DuelPage> {
 
   Widget _buildResult(DuelController controller) {
     final isCorrect = controller.isCorrect == true;
+    final resultTextStyle = isCorrect
+        ? TextStyles.success.copyWith(fontSize: 16, fontWeight: FontWeight.bold)
+        : const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: AppTheme.errorColor,
+          );
+
+    final explanationTextStyle = isCorrect
+        ? TextStyles.success
+        : const TextStyle(fontSize: 14, color: AppTheme.errorColor);
+
+    final cardTextStyle = isCorrect
+        ? TextStyles.explanation.copyWith(height: 1.3)
+        : const TextStyle(fontSize: 12, height: 1.3, color: AppTheme.errorColor);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          isCorrect ? 'Você acertou!' : 'Você não acertou desta vez.', 
-          style: isCorrect 
-              ? TextStyles.success.copyWith(fontSize: 16, fontWeight: FontWeight.bold) 
-              : const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.errorColor),
+          isCorrect ? 'Você acertou!' : 'Você não acertou desta vez.',
+          style: resultTextStyle,
         ),
         const SizedBox(height: 6),
         Text(
-          'A ${_correctItemName(controller)} é a opção mais indicada.', 
-          style: isCorrect 
-              ? TextStyles.success 
-              : const TextStyle(fontSize: 14, color: AppTheme.errorColor),
+          'A ${_correctItemName(controller)} é a opção mais indicada.',
+          style: explanationTextStyle,
         ),
         const SizedBox(height: 14),
         Container(
           width: double.infinity,
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: Colors.white, 
+            color: Colors.white,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: isCorrect ? AppTheme.successColor : AppTheme.errorColor), 
+            border: Border.all(
+              color: isCorrect ? AppTheme.successColor : AppTheme.errorColor,
+            ),
           ),
           child: Text(
-            // 🔥 USA A DESCRIPTION DO ITEM CORRETO 🔥
-            controller.description, 
-            style: isCorrect 
-                ? TextStyles.explanation.copyWith(height: 1.3) 
-                : const TextStyle(fontSize: 12, height: 1.3, color: AppTheme.errorColor),
+            controller.description,
+            style: cardTextStyle,
           ),
         ),
       ],
@@ -380,7 +359,7 @@ class _DuelPageState extends State<DuelPage> {
 
   String _correctItemName(DuelController controller) {
     if (controller.currentDuel == null) return '';
-    final correctId = controller.currentDuel!.correctAnswerId;
+    final correctId = controller.currentDuel!.correctFoodId;
     
     if (controller.currentDuel?.foodAId == correctId) {
       return controller.itemAName;
@@ -391,6 +370,120 @@ class _DuelPageState extends State<DuelPage> {
   }
 
   Widget _buildActionButton(DuelController controller) {
+    if (controller.showResult) {
+      if (controller.isDuelLimitReached) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Duelos atingidos',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: AppTheme.primaryColor,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: SizedBox(
+                    height: 48,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primaryColor,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      onPressed: () {
+                        Navigator.pushReplacementNamed(context, AppRoutes.instructionsDuel);
+                      },
+                      child: const Text(
+                        'Escolher novo contexto',
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: SizedBox(
+                    height: 48,
+                    child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppTheme.primaryColor,
+                        side: const BorderSide(color: AppTheme.primaryColor, width: 1.2),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      onPressed: () async {
+                        await widget.controller.restartCurrentContext();
+                      },
+                      child: const Text(
+                        'Refazer duelo',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        );
+      }
+
+      return Row(
+        children: [
+          Expanded(
+            child: SizedBox(
+              height: 48,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryColor,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                onPressed: controller.isLoading ? null : _newDuel,
+                child: const Text(
+                  'Novo duelo',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: SizedBox(
+              height: 48,
+              child: OutlinedButton(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppTheme.primaryColor,
+                  side: const BorderSide(color: AppTheme.primaryColor, width: 1.2),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                onPressed: () {
+                  Navigator.pushReplacementNamed(context, AppRoutes.instructionsDuel);
+                },
+                child: const Text(
+                  'Escolher outro contexto',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
     return SizedBox(
       width: double.infinity,
       height: 48,
@@ -402,17 +495,25 @@ class _DuelPageState extends State<DuelPage> {
             borderRadius: BorderRadius.circular(10),
           ),
         ),
-        onPressed: controller.isLoading 
-            ? null 
-            : (controller.showResult 
-                ? () => _newDuel()
-                : (controller.selectedItemId == null ? null : _showResultAndSave)),
-        child: Text(
-          controller.showResult ? 'Novo duelo' : 'Ver resultado',
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        onPressed: controller.isLoading ? null : _handleAction(controller),
+        child: const Text(
+          'Ver resultado',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
       ),
     );
+  }
+
+  void Function()? _handleAction(DuelController controller) {
+    if (controller.showResult) {
+      return () => _newDuel();
+    }
+
+    if (controller.selectedItemId == null) {
+      return null;
+    }
+
+    return _showResultAndSave;
   }
 
   Future<void> _newDuel() async {
@@ -421,12 +522,14 @@ class _DuelPageState extends State<DuelPage> {
 
   Future<void> _showResultAndSave() async {
     widget.controller.showDuelResult();
+    widget.controller.registerCompletedDuel();
+
     final userId = FirebaseAuth.instance.currentUser?.uid;
-    if (userId != null) {
-      try {
-        await widget.controller.saveResult(userId);
-      } catch (_) {
-      }
-    }
+    if (userId == null) return;
+
+    try {
+      await widget.controller.saveResult(userId);
+    } catch (_) {}
   }
 }
+

@@ -1,4 +1,4 @@
-// lib/features/progress/models/user_duel_progress_model.dart
+﻿
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class UserDuelProgressModel {
@@ -46,3 +46,4 @@ class UserDuelProgressModel {
     };
   }
 }
+

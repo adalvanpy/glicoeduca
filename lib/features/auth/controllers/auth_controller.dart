@@ -1,4 +1,4 @@
-import 'package:firebase_auth/firebase_auth.dart';
+﻿import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import '../models/user_model.dart';
 import '../repositories/auth_repository.dart';
@@ -7,14 +7,13 @@ class AuthController extends ChangeNotifier {
   final AuthRepository repository;
 
   AuthController({required this.repository}) {
-    // 🔥 ESCUTA MUDANÇAS NO ESTADO DE AUTENTICAÇÃO DO FIREBASE
+
     FirebaseAuth.instance.authStateChanges().listen((User? firebaseUser) {
       if (firebaseUser != null) {
-        print('🔍 AuthController - Usuário Firebase detectado: ${firebaseUser.uid}');
-        // Recarrega o perfil do usuário
+
         loadCurrentUser();
       } else {
-        print('🔍 AuthController - Usuário Firebase deslogado');
+
         user = null;
         notifyListeners();
       }
@@ -33,14 +32,12 @@ class AuthController extends ChangeNotifier {
         final result = await repository.signIn(username: username);
         if (result == null) {
           errorMessage = 'Usuário não encontrado.';
-        } else {
-          user = result;
-          // 🔥 VERIFICA SE O FIREBASE AUTH TAMBÉM ESTÁ LOGADO
-          final firebaseUser = FirebaseAuth.instance.currentUser;
-          print('✅ signIn - Firebase user: ${firebaseUser?.uid}');
+          return;
         }
+
+        user = result;
       },
-      'Nome de usuário não encontrado.'
+      'Nome de usuário não encontrado.',
     );
   }
 
@@ -57,17 +54,12 @@ class AuthController extends ChangeNotifier {
 
   Future<void> loadCurrentUser() async {
     try {
-      print('🔍 loadCurrentUser - Carregando perfil...');
       user = await repository.getCurrentProfile();
       if (user == null) {
         errorMessage = 'Nenhum usuário logado.';
-        print('❌ loadCurrentUser - Nenhum usuário logado');
-      } else {
-        print('✅ loadCurrentUser - Usuário carregado: ${user!.name} (${user!.id})');
       }
-    } catch (e) {
+    } catch (_) {
       errorMessage = 'Não foi possível carregar o usuário atual.';
-      print('❌ Erro ao carregar usuário: $e');
     }
     notifyListeners();
   }
@@ -77,7 +69,7 @@ class AuthController extends ChangeNotifier {
     user = null;
     errorMessage = null;
     notifyListeners();
-    print('✅ Usuário deslogado');
+
   }
 
   Future<void> updateUser({
@@ -99,7 +91,7 @@ class AuthController extends ChangeNotifier {
           sex: sex,
           avatar: avatar,
         );
-        // Atualiza o usuário local
+
         user = await repository.getCurrentProfile();
       },
       'Não foi possível atualizar o usuário.'
@@ -131,10 +123,11 @@ class AuthController extends ChangeNotifier {
       await action();
     } catch (e) {
       errorMessage = fallbackMessage;
-      print('❌ Erro: $e');
+
     } finally {
       isLoading = false;
       notifyListeners();
     }
   }
 }
+

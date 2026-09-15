@@ -1,4 +1,4 @@
-class AvatarModel {
+﻿class AvatarModel {
   final String id;
   final String image;
   final String sex;

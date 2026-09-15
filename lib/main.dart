@@ -1,4 +1,4 @@
-import 'package:firebase_core/firebase_core.dart';
+﻿import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -14,18 +14,14 @@ Future<void> main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // 🔥 ESPERA O FIREBASE AUTH RESTAURAR A SESSÃO
   await Future.delayed(const Duration(seconds: 1));
 
-  // 🔥 VERIFICA SE HÁ USUÁRIO LOGADO
   final user = FirebaseAuth.instance.currentUser;
-  print('🔍 MAIN - Usuário logado: ${user?.uid}');
-  print('🔍 MAIN - Email: ${user?.email}');
-  
+
   if (user != null) {
-    print('✅ MAIN - Usuário está logado!');
+
   } else {
-    print('❌ MAIN - Nenhum usuário logado!');
+
   }
 
   runApp(const GlicoEducaApp());
@@ -45,4 +41,5 @@ class GlicoEducaApp extends StatelessWidget {
     );
   }
 }
+
 

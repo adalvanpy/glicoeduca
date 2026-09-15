@@ -1,9 +1,11 @@
+﻿import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_routes.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/text_styles.dart';
 import '../../../core/widgets/bottom_navigation.dart';
+import '../../progress/repositories/user_progress_repository.dart';
 import '../controller/food_controller.dart';
 import '../models/food_model.dart';
 import '../repositories/food_repository.dart';
@@ -17,14 +19,16 @@ class FoodPage extends StatefulWidget {
 
 class _FoodPageState extends State<FoodPage> {
   late final FoodController _controller;
-  String _selectedCategory = 'Simples';
+  String _selectedCarbohydrateType = 'Todos';
   String _selectedIgClassification = 'Todos';
   String _selectedCgClassification = 'Todos';
   bool _isLoading = true;
 
-  final List<String> _categories = ['Todos', 'Simples', 'Complexos'];
+  final List<String> _carbohydrateTypes = ['Todos', 'Simples', 'Complexos'];
   final List<String> _igClassifications = ['Todos', 'Baixo', 'Moderado', 'Alto'];
   final List<String> _cgClassifications = ['Todos', 'Baixa', 'Moderada', 'Alta'];
+
+  bool _hasSavedProgress = false;
 
   @override
   void initState() {
@@ -32,6 +36,22 @@ class _FoodPageState extends State<FoodPage> {
     _controller = FoodController(repository: FoodRepository());
     _controller.addListener(_refresh);
     _loadData();
+    _saveProgressIfNeeded();
+  }
+
+  Future<void> _saveProgressIfNeeded() async {
+    if (_hasSavedProgress) return;
+
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId == null || userId.isEmpty) return;
+
+    _hasSavedProgress = true;
+
+    await ProgressRepository().saveProgress(
+      userId: userId,
+      theoryTitle: 'Alimentos',
+      progress: 1.0,
+    );
   }
 
   void _refresh() {
@@ -46,17 +66,22 @@ class _FoodPageState extends State<FoodPage> {
 
   Future<void> _filterFoods() async {
     setState(() => _isLoading = true);
-    
-    final category = _selectedCategory == 'Todos' ? null : _selectedCategory;
-    final ig = _selectedIgClassification == 'Todos' ? null : _selectedIgClassification;
-    final cg = _selectedCgClassification == 'Todos' ? null : _selectedCgClassification;
-    
+
+    final carbohydrateType = _selectedCarbohydrateType == 'Todos'
+        ? null
+        : _selectedCarbohydrateType.trim();
+    final ig =
+        _selectedIgClassification == 'Todos' ? null : _selectedIgClassification.trim();
+    final cg = _selectedCgClassification == 'Todos'
+        ? null
+        : _selectedCgClassification.trim();
+
     await _controller.loadFoodsFiltered(
-      category: category,
+      carbohydrateType: carbohydrateType,
       glycemicIndexClassification: ig,
       glycemicLoadClassification: cg,
     );
-    
+
     setState(() => _isLoading = false);
   }
 
@@ -92,16 +117,22 @@ class _FoodPageState extends State<FoodPage> {
             AppBottomNavigation(
               currentIndex: 0,
               onItemSelected: (index) {
-                if (index == 0) {
-                  Navigator.pushReplacementNamed(context, AppRoutes.homePage);
-                } else if (index == 1) {
-                  Navigator.pushReplacementNamed(context, AppRoutes.optionTheory);
-                } else if (index == 2) {
-                  Navigator.pushReplacementNamed(context, AppRoutes.instructionsDuel);
-                } else if (index == 3) {
-                  Navigator.pushReplacementNamed(context, AppRoutes.instructionsQuiz);
-                } else if (index == 4) {
-                  Navigator.pushReplacementNamed(context, AppRoutes.profile);
+                switch (index) {
+                  case 0:
+                    Navigator.pushReplacementNamed(context, AppRoutes.homePage);
+                    break;
+                  case 1:
+                    Navigator.pushReplacementNamed(context, AppRoutes.optionTheory);
+                    break;
+                  case 2:
+                    Navigator.pushReplacementNamed(context, AppRoutes.instructionsDuel);
+                    break;
+                  case 3:
+                    Navigator.pushReplacementNamed(context, AppRoutes.instructionsQuiz);
+                    break;
+                  case 4:
+                    Navigator.pushReplacementNamed(context, AppRoutes.profile);
+                    break;
                 }
               },
             ),
@@ -115,37 +146,41 @@ class _FoodPageState extends State<FoodPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            RichText(
-              text: const TextSpan(
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                children: [
-                  TextSpan(text: 'Glico', style: TextStyles.logoRed),
-                  TextSpan(text: 'Educa', style: TextStyles.logoGreen),
-                ],
-              ),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: RichText(
+            text: const TextSpan(
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              children: [
+                TextSpan(text: 'Glico', style: TextStyles.logoRed),
+                TextSpan(text: 'Educa', style: TextStyles.logoGreen),
+              ],
             ),
-            const Spacer(),
-            const Icon(Icons.search, color: Colors.grey),
-          ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: IconButton(
+            onPressed: () => Navigator.pop(context),
+            icon: const Icon(
+              Icons.arrow_back_ios_new_rounded,
+              size: 20,
+            ),
+            splashRadius: 20,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+          ),
         ),
         const SizedBox(height: 8),
         const Text(
           'Alimentos',
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: Colors.black87,
-          ),
+          style: TextStyles.pageTitle,
         ),
         const SizedBox(height: 4),
         const Text(
           'Entendendo as composições dos alimentos',
-          style: TextStyle(
-            fontSize: 14,
-            color: Colors.black54,
-          ),
+          style: TextStyles.description,
         ),
       ],
     );
@@ -155,40 +190,43 @@ class _FoodPageState extends State<FoodPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Tipos (Simples/Complexos)
+
         _buildFilterSection(
-          title: 'Tipos',
-          options: _categories,
-          selected: _selectedCategory,
+          title: 'Tipo de carboidrato',
+          options: _carbohydrateTypes,
+          selected: _selectedCarbohydrateType,
           onChanged: (value) {
+            final nextValue = value ?? 'Todos';
             setState(() {
-              _selectedCategory = value!;
+              _selectedCarbohydrateType = nextValue;
             });
             _filterFoods();
           },
         ),
         const SizedBox(height: 16),
-        // Índice Glicêmico
+
         _buildFilterSection(
           title: 'Índice glicêmico',
           options: _igClassifications,
           selected: _selectedIgClassification,
           onChanged: (value) {
+            final nextValue = value ?? 'Todos';
             setState(() {
-              _selectedIgClassification = value!;
+              _selectedIgClassification = nextValue;
             });
             _filterFoods();
           },
         ),
         const SizedBox(height: 16),
-        // Carga Glicêmica
+
         _buildFilterSection(
           title: 'Carga glicêmica',
           options: _cgClassifications,
           selected: _selectedCgClassification,
           onChanged: (value) {
+            final nextValue = value ?? 'Todos';
             setState(() {
-              _selectedCgClassification = value!;
+              _selectedCgClassification = nextValue;
             });
             _filterFoods();
           },
@@ -208,11 +246,7 @@ class _FoodPageState extends State<FoodPage> {
       children: [
         Text(
           title,
-          style: const TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.bold,
-            color: Colors.black87,
-          ),
+          style: TextStyles.cardTitle,
         ),
         const SizedBox(height: 8),
         Wrap(
@@ -225,21 +259,21 @@ class _FoodPageState extends State<FoodPage> {
                 onChanged(isSelected ? null : option);
               },
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
-                  color: isSelected ? AppTheme.primaryColor : Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(20),
+                  color: isSelected ? const Color(0xFFE7F7EC) : Colors.white,
+                  borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                    color: isSelected ? AppTheme.primaryColor : Colors.grey.shade300,
+                    color: isSelected ? const Color(0xFF6ECF7A) : const Color(0xFFBFE7C5),
                     width: 1,
                   ),
                 ),
                 child: Text(
                   option,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                    color: isSelected ? Colors.white : Colors.black87,
+                  style: TextStyles.cardBodyText.copyWith(
+                    fontSize: 12,
+                    color: isSelected ? const Color(0xFF1F2937) : const Color(0xFF374151),
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                   ),
                 ),
               ),
@@ -276,9 +310,7 @@ class _FoodPageState extends State<FoodPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 8),
-        ..._controller.foods.map((food) {
-          return _foodCard(food);
-        }).toList(),
+        ..._controller.foods.map((food) => _foodCard(food)),
       ],
     );
   }
@@ -286,104 +318,120 @@ class _FoodPageState extends State<FoodPage> {
   Widget _foodCard(FoodModel food) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.complexCardBackground,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200, width: 1),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
       ),
-      child: Row(
+      child: Column(
         children: [
-          // Imagem
-          Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              color: Colors.grey.shade100,
-            ),
-            child: food.image.isNotEmpty
-                ? ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Image.network(
-                      food.image,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => const Icon(
-                        Icons.food_bank,
-                        size: 30,
-                        color: Colors.grey,
-                      ),
+          Row(
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 54,
+                    height: 54,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      color: const Color(0xFFF7F7F7),
+                      border: Border.all(color: const Color(0xFFE6E6E6), width: 1),
                     ),
-                  )
-                : const Icon(Icons.food_bank, size: 30, color: Colors.grey),
-          ),
-          const SizedBox(width: 12),
-          // Informações
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  food.name,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+                    child: food.image.isNotEmpty
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.network(
+                              food.image,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) => const Icon(
+                                Icons.food_bank,
+                                size: 26,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          )
+                        : const Icon(Icons.food_bank, size: 26, color: Colors.grey),
                   ),
-                ),
-                const SizedBox(height: 4),
-                Wrap(
-                  spacing: 4,
-                  runSpacing: 4,
+                  const SizedBox(height: 4),
+                  Text(
+                    '${food.kcal.toStringAsFixed(0)} kcal',
+                    style: TextStyles.cardBodyText.copyWith(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFF1F2937),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _badge(
-                      'Carb: ${food.carbohydrates.toStringAsFixed(0)}g',
-                      Colors.red,
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            food.name,
+                            style: TextStyles.cardTitle.copyWith(fontSize: 14),
+                          ),
+                        ),
+                        Text(
+                          '${food.grams.toStringAsFixed(0)}g',
+                          style: TextStyles.cardBodyText.copyWith(
+                            fontSize: 12,
+                            color: const Color(0xFF6B7280),
+                          ),
+                        ),
+                      ],
                     ),
-                    _badge(
-                      'Fibras: ${food.fiber.toStringAsFixed(0)}g',
-                      Colors.green,
+                    const SizedBox(height: 6),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: [
+                        _badge(
+                          'Carb: ${food.carbohydrates.toStringAsFixed(0)}g',
+                          const Color(0xFFEF5350),
+                        ),
+                        _badge(
+                          'Fibra: ${food.fiber.toStringAsFixed(0)}g',
+                          const Color(0xFF2DB93B),
+                        ),
+                        _badge(
+                          'IG: ${food.glycemicIndex.toStringAsFixed(0)}',
+                          _getGlycemicIndexColor(food.glycemicIndex),
+                        ),
+                        _badge(
+                          'CG: ${food.glycemicLoad.toStringAsFixed(0)}',
+                          _getGlycemicLoadColor(food.glycemicLoad),
+                        ),
+                      ],
                     ),
-                    _badge(
-                      'IG: ${food.glycemicIndex.toStringAsFixed(0)}',
-                      _getGlycemicIndexColor(food.glycemicIndex),
-                    ),
-                    _badge(
-                      'CG: ${food.glycemicLoad.toStringAsFixed(1)}',
-                      _getGlycemicLoadColor(food.glycemicLoad),
-                    ),
-                    if (food.category.isNotEmpty)
-                      _badge(food.category, Colors.purple),
                   ],
                 ),
-              ],
-            ),
-          ),
-          // Quantidade
-          Column(
-            children: [
-              Text(
-                '${food.grams.toStringAsFixed(0)}g',
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Icon(
-                Icons.arrow_forward_ios,
-                size: 16,
-                color: Colors.grey.shade400,
               ),
             ],
+          ),
+          const SizedBox(height: 10),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton.icon(
+              onPressed: () {
+                Navigator.pushNamed(
+                  context,
+                  AppRoutes.foodDetails,
+                  arguments: food,
+                );
+              },
+              icon: const Icon(Icons.info_outline, size: 16),
+              label: const Text('Ver detalhes'),
+              style: TextButton.styleFrom(
+                foregroundColor: AppTheme.primaryColor,
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              ),
+            ),
           ),
         ],
       ),
@@ -394,9 +442,8 @@ class _FoodPageState extends State<FoodPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: color.withOpacity(0.2), width: 0.5),
       ),
       child: Text(
         text,
@@ -409,15 +456,7 @@ class _FoodPageState extends State<FoodPage> {
     );
   }
 
-  Color _getGlycemicIndexColor(double gi) {
-    if (gi <= 55) return Colors.green;
-    if (gi <= 69) return Colors.orange;
-    return Colors.red;
-  }
+  Color _getGlycemicIndexColor(double gi) => AppTheme.getGlycemicIndexColor(gi);
 
-  Color _getGlycemicLoadColor(double gl) {
-    if (gl <= 10) return Colors.green;
-    if (gl <= 19) return Colors.orange;
-    return Colors.red;
-  }
+  Color _getGlycemicLoadColor(double gl) => AppTheme.getGlycemicLoadColor(gl);
 }
