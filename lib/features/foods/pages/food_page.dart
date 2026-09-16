@@ -31,71 +31,13 @@ class _FoodPageState extends State<FoodPage> {
   bool _hasSavedProgress = false;
 
   @override
-  void initState() {
-    super.initState();
-    _controller = FoodController(repository: FoodRepository());
-    _controller.addListener(_refresh);
-    _loadData();
-    _saveProgressIfNeeded();
-  }
-
-  Future<void> _saveProgressIfNeeded() async {
-    if (_hasSavedProgress) return;
-
-    final userId = FirebaseAuth.instance.currentUser?.uid;
-    if (userId == null || userId.isEmpty) return;
-
-    _hasSavedProgress = true;
-
-    await ProgressRepository().saveProgress(
-      userId: userId,
-      theoryTitle: 'Alimentos',
-      progress: 1.0,
-    );
-  }
-
-  void _refresh() {
-    if (mounted) setState(() {});
-  }
-
-  Future<void> _loadData() async {
-    setState(() => _isLoading = true);
-    await _controller.loadFoods();
-    setState(() => _isLoading = false);
-  }
-
-  Future<void> _filterFoods() async {
-    setState(() => _isLoading = true);
-
-    final carbohydrateType = _selectedCarbohydrateType == 'Todos'
-        ? null
-        : _selectedCarbohydrateType.trim();
-    final ig =
-        _selectedIgClassification == 'Todos' ? null : _selectedIgClassification.trim();
-    final cg = _selectedCgClassification == 'Todos'
-        ? null
-        : _selectedCgClassification.trim();
-
-    await _controller.loadFoodsFiltered(
-      carbohydrateType: carbohydrateType,
-      glycemicIndexClassification: ig,
-      glycemicLoadClassification: cg,
-    );
-
-    setState(() => _isLoading = false);
-  }
-
-  @override
-  void dispose() {
-    _controller.removeListener(_refresh);
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+      ),
       body: SafeArea(
         child: Column(
           children: [
@@ -142,47 +84,37 @@ class _FoodPageState extends State<FoodPage> {
     );
   }
 
-  Widget _buildHeader() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Align(
-          alignment: Alignment.centerLeft,
-          child: RichText(
-            text: const TextSpan(
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              children: [
-                TextSpan(text: 'Glico', style: TextStyles.logoRed),
-                TextSpan(text: 'Educa', style: TextStyles.logoGreen),
-              ],
-            ),
-          ),
+  @override
+  void dispose() {
+    _controller.removeListener(_refresh);
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = FoodController(repository: FoodRepository());
+    _controller.addListener(_refresh);
+    _loadData();
+    _saveProgressIfNeeded();
+  }
+
+  Widget _badge(String text, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w500,
+          color: color,
         ),
-        const SizedBox(height: 8),
-        Align(
-          alignment: Alignment.centerLeft,
-          child: IconButton(
-            onPressed: () => Navigator.pop(context),
-            icon: const Icon(
-              Icons.arrow_back_ios_new_rounded,
-              size: 20,
-            ),
-            splashRadius: 20,
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
-          ),
-        ),
-        const SizedBox(height: 8),
-        const Text(
-          'Alimentos',
-          style: TextStyles.pageTitle,
-        ),
-        const SizedBox(height: 4),
-        const Text(
-          'Entendendo as composições dos alimentos',
-          style: TextStyles.description,
-        ),
-      ],
+      ),
     );
   }
 
@@ -315,6 +247,45 @@ class _FoodPageState extends State<FoodPage> {
     );
   }
 
+  Widget _buildHeader() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 8),
+        const Text(
+          'Alimentos',
+          style: TextStyles.pageTitle,
+        ),
+        const SizedBox(height: 4),
+        const Text(
+          'Entendendo as composições dos alimentos',
+          style: TextStyles.description,
+        ),
+      ],
+    );
+  }
+
+  Future<void> _filterFoods() async {
+    setState(() => _isLoading = true);
+
+    final carbohydrateType = _selectedCarbohydrateType == 'Todos'
+        ? null
+        : _selectedCarbohydrateType.trim();
+    final ig =
+        _selectedIgClassification == 'Todos' ? null : _selectedIgClassification.trim();
+    final cg = _selectedCgClassification == 'Todos'
+        ? null
+        : _selectedCgClassification.trim();
+
+    await _controller.loadFoodsFiltered(
+      carbohydrateType: carbohydrateType,
+      glycemicIndexClassification: ig,
+      glycemicLoadClassification: cg,
+    );
+
+    setState(() => _isLoading = false);
+  }
+
   Widget _foodCard(FoodModel food) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -438,25 +409,32 @@ class _FoodPageState extends State<FoodPage> {
     );
   }
 
-  Widget _badge(String text, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Text(
-        text,
-        style: TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.w500,
-          color: color,
-        ),
-      ),
-    );
-  }
-
   Color _getGlycemicIndexColor(double gi) => AppTheme.getGlycemicIndexColor(gi);
 
   Color _getGlycemicLoadColor(double gl) => AppTheme.getGlycemicLoadColor(gl);
+
+  Future<void> _loadData() async {
+    setState(() => _isLoading = true);
+    await _controller.loadFoods();
+    setState(() => _isLoading = false);
+  }
+
+  void _refresh() {
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _saveProgressIfNeeded() async {
+    if (_hasSavedProgress) return;
+
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId == null || userId.isEmpty) return;
+
+    _hasSavedProgress = true;
+
+    await ProgressRepository().saveProgress(
+      userId: userId,
+      theoryTitle: 'Alimentos',
+      progress: 1.0,
+    );
+  }
 }

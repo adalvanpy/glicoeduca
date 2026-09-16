@@ -1,5 +1,6 @@
 ﻿import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+
 import '../../../core/constants/app_routes.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/text_styles.dart';
@@ -26,57 +27,13 @@ class _GlycemicIndexPageState extends State<GlycemicIndexPage> {
   List<FoodModel> _highIgFoods = [];
 
   @override
-  void initState() {
-    super.initState();
-    _loadFoodsByClassification();
-  }
-
-  Future<void> _loadFoodsByClassification() async {
-    final lowFoods = await _foodRepository.getFoodsByGlycemicIndexClassification('Baixo');
-    final moderateFoods = await _foodRepository.getFoodsByGlycemicIndexClassification('Moderado');
-    final highFoods = await _foodRepository.getFoodsByGlycemicIndexClassification('Alto');
-
-    if (!mounted) return;
-
-    setState(() {
-      _lowIgFoods = lowFoods;
-      _moderateIgFoods = moderateFoods;
-      _highIgFoods = highFoods;
-    });
-  }
-
-  Future<void> _saveProgressIfNeeded() async {
-    if (_hasSavedProgress) return;
-
-    final userId = FirebaseAuth.instance.currentUser?.uid;
-    if (userId == null || userId.isEmpty) return;
-
-    _hasSavedProgress = true;
-
-    await ProgressRepository().saveProgress(
-      userId: userId,
-      theoryTitle: 'Índice glicêmico',
-      progress: 1.0,
-    );
-  }
-
-  void _handleScroll(ScrollNotification notification) {
-    if (!mounted) return;
-
-    final metrics = notification.metrics;
-    final progress = metrics.maxScrollExtent <= 0
-        ? 1.0
-        : (metrics.pixels / metrics.maxScrollExtent).clamp(0.0, 1.0);
-
-    if (progress >= 0.9) {
-      _saveProgressIfNeeded();
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+      ),
       body: SafeArea(
         child: Column(
           children: [
@@ -141,75 +98,10 @@ class _GlycemicIndexPageState extends State<GlycemicIndexPage> {
     );
   }
 
-  Widget _buildLogo() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Align(
-          alignment: Alignment.centerLeft,
-          child: RichText(
-            text: const TextSpan(
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              children: [
-                TextSpan(text: 'Glico', style: TextStyles.logoRed),
-                TextSpan(text: 'Educa', style: TextStyles.logoGreen),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 8),
-        Align(
-          alignment: Alignment.centerLeft,
-          child: IconButton(
-            onPressed: () => Navigator.pop(context),
-            icon: const Icon(
-              Icons.arrow_back_ios_new_rounded,
-              size: 20,
-            ),
-            splashRadius: 20,
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildIntroCard() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppTheme.infoCardBackground,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppTheme.infoCardBorder,
-          width: 1.0,
-        ),
-      ),
-      child: RichText(
-        text: TextSpan(
-          style: TextStyles.cardBodyText,
-          children: [
-            const TextSpan(
-              text:
-                  'O Índice Glicêmico (IG) mostra ',
-            ),
-            TextSpan(
-              text: 'quão rápido',
-              style: TextStyles.cardBodyText.copyWith(
-                color: const Color(0xFFFF9800),
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const TextSpan(
-              text:
-                  ' um alimento faz a glicose subir no sangue. Alimentos com IG alto elevam a glicemia mais rapidamente. Já os com IG baixo fazem a subida acontecer de forma mais gradual.',
-            ),
-          ],
-        ),
-      ),
-    );
+  @override
+  void initState() {
+    super.initState();
+    _loadFoodsByClassification();
   }
 
   Widget _buildClassificacaoSection() {
@@ -238,61 +130,6 @@ class _GlycemicIndexPageState extends State<GlycemicIndexPage> {
           subtitle: 'Elevam a glicemia rapidamente.',
           color: const Color(0xFFEF5350),
           foods: _highIgFoods,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildImpactoSection() {
-    return _buildExpandableContainer(
-      title: 'Impacto na saúde',
-      isExpanded: _isImpactoExpanded,
-      onToggle: () => setState(() => _isImpactoExpanded = !_isImpactoExpanded),
-      children: [
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppTheme.complexCardBackground,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: AppTheme.complexCardBorder,
-              width: 1.0,
-            ),
-          ),
-          child: const Text(
-            'Quando a alimentação tem muitos alimentos de IG alto, a glicemia pode subir rápido e depois cair de forma mais intensa. Já alimentos com IG mais baixo costumam dar uma resposta mais estável e podem ajudar a manter a sensação de saciedade por mais tempo.',
-            textAlign: TextAlign.start,
-            style: TextStyles.cardBodyText,
-          ),
-        ),
-        const SizedBox(height: 12),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppTheme.complexCardBackground,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: AppTheme.complexCardBorder,
-              width: 1.0,
-            ),
-          ),
-          child: RichText(
-            text: TextSpan(
-              style: TextStyles.cardBodyText,
-              children: [
-                const TextSpan(
-                  text: 'Dica da nutricionista: ',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                const TextSpan(
-                  text:
-                      'O segredo está na combinação dos alimentos e na quantidade ingerida. Quando você junta carboidratos com fibras, proteínas e gorduras boas, a digestão fica mais lenta e o índice glicêmico tende a cair, deixando a resposta da glicose mais estável.',
-                ),
-              ],
-            ),
-          ),
         ),
       ],
     );
@@ -434,6 +271,144 @@ class _GlycemicIndexPageState extends State<GlycemicIndexPage> {
             ),
         ],
       ),
+    );
+  }
+
+  Widget _buildImpactoSection() {
+    return _buildExpandableContainer(
+      title: 'Impacto na saúde',
+      isExpanded: _isImpactoExpanded,
+      onToggle: () => setState(() => _isImpactoExpanded = !_isImpactoExpanded),
+      children: [
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppTheme.complexCardBackground,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: AppTheme.complexCardBorder,
+              width: 1.0,
+            ),
+          ),
+          child: const Text(
+            'Quando a alimentação tem muitos alimentos de IG alto, a glicemia pode subir rápido e depois cair de forma mais intensa. Já alimentos com IG mais baixo costumam dar uma resposta mais estável e podem ajudar a manter a sensação de saciedade por mais tempo.',
+            textAlign: TextAlign.start,
+            style: TextStyles.cardBodyText,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppTheme.complexCardBackground,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: AppTheme.complexCardBorder,
+              width: 1.0,
+            ),
+          ),
+          child: RichText(
+            text: TextSpan(
+              style: TextStyles.cardBodyText,
+              children: [
+                const TextSpan(
+                  text: 'Dica da nutricionista: ',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const TextSpan(
+                  text:
+                      'O segredo está na combinação dos alimentos e na quantidade ingerida. Quando você junta carboidratos com fibras, proteínas e gorduras boas, a digestão fica mais lenta e o índice glicêmico tende a cair, deixando a resposta da glicose mais estável.',
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildIntroCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppTheme.infoCardBackground,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppTheme.infoCardBorder,
+          width: 1.0,
+        ),
+      ),
+      child: RichText(
+        text: TextSpan(
+          style: TextStyles.cardBodyText,
+          children: [
+            const TextSpan(
+              text:
+                  'O Índice Glicêmico (IG) mostra ',
+            ),
+            TextSpan(
+              text: 'quão rápido',
+              style: TextStyles.cardBodyText.copyWith(
+                color: const Color(0xFFFF9800),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const TextSpan(
+              text:
+                  ' um alimento faz a glicose subir no sangue. Alimentos com IG alto elevam a glicemia mais rapidamente. Já os com IG baixo fazem a subida acontecer de forma mais gradual.',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLogo() {
+    return const SizedBox.shrink();
+  }
+
+  void _handleScroll(ScrollNotification notification) {
+    if (!mounted) return;
+
+    final metrics = notification.metrics;
+    final progress = metrics.maxScrollExtent <= 0
+        ? 1.0
+        : (metrics.pixels / metrics.maxScrollExtent).clamp(0.0, 1.0);
+
+    if (progress >= 0.9) {
+      _saveProgressIfNeeded();
+    }
+  }
+
+  Future<void> _loadFoodsByClassification() async {
+    final lowFoods = await _foodRepository.getFoodsByGlycemicIndexClassification('Baixo');
+    final moderateFoods = await _foodRepository.getFoodsByGlycemicIndexClassification('Moderado');
+    final highFoods = await _foodRepository.getFoodsByGlycemicIndexClassification('Alto');
+
+    if (!mounted) return;
+
+    setState(() {
+      _lowIgFoods = lowFoods;
+      _moderateIgFoods = moderateFoods;
+      _highIgFoods = highFoods;
+    });
+  }
+
+  Future<void> _saveProgressIfNeeded() async {
+    if (_hasSavedProgress) return;
+
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId == null || userId.isEmpty) return;
+
+    _hasSavedProgress = true;
+
+    await ProgressRepository().saveProgress(
+      userId: userId,
+      theoryTitle: 'Índice glicêmico',
+      progress: 1.0,
     );
   }
 }

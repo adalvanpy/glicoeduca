@@ -280,7 +280,7 @@ class _HomePageState extends State<HomePage> {
         ),
         const SizedBox(height: 20),
         Text(
-          'Bem vindo, $userName!',
+          'Bem vindo (a), $userName!',
           style: TextStyles.pageTitle.copyWith(
             fontSize: 24,
           ),

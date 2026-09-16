@@ -25,60 +25,13 @@ class _NutritionistTipsPageState extends State<NutritionistTipsPage> {
   String _selectedContextId = 'breakfast'; // Começa com o primeiro expandido
 
   @override
-  void initState() {
-    super.initState();
-    _controller = NutritionistTipsController(
-      repository: NutritionistTipsRepository(),
-    );
-    _controller.addListener(_refresh);
-    _loadData();
-    _saveProgressIfNeeded();
-  }
-
-  Future<void> _saveProgressIfNeeded() async {
-    if (_hasSavedProgress) return;
-
-    final userId = FirebaseAuth.instance.currentUser?.uid;
-    if (userId == null || userId.isEmpty) return;
-
-    _hasSavedProgress = true;
-
-    await ProgressRepository().saveProgress(
-      userId: userId,
-      theoryTitle: 'Dicas de nutricionista',
-      progress: 1.0,
-    );
-  }
-
-  void _refresh() {
-    if (mounted) setState(() {});
-  }
-
-  Future<void> _loadData() async {
-    setState(() => _isLoading = true);
-    await _controller.loadTips();
-    await _updateAccessState();
-    setState(() => _isLoading = false);
-  }
-
-  Future<void> _updateAccessState() async {
-    final tipIds = _controller.tips.map((tip) => tip.id).toList();
-    await NutritionistTipsAccessService.canAccessGames(
-      allTipIds: tipIds,
-    );
-  }
-
-  @override
-  void dispose() {
-    _controller.removeListener(_refresh);
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+      ),
       body: SafeArea(
         child: Column(
           children: [
@@ -132,46 +85,86 @@ class _NutritionistTipsPageState extends State<NutritionistTipsPage> {
     );
   }
 
-  Widget _buildHeader() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Align(
-          alignment: Alignment.centerLeft,
-          child: RichText(
-            text: const TextSpan(
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              children: [
-                TextSpan(text: 'Glico', style: TextStyles.logoRed),
-                TextSpan(text: 'Educa', style: TextStyles.logoGreen),
-              ],
+  @override
+  void dispose() {
+    _controller.removeListener(_refresh);
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = NutritionistTipsController(
+      repository: NutritionistTipsRepository(),
+    );
+    _controller.addListener(_refresh);
+    _loadData();
+    _saveProgressIfNeeded();
+  }
+
+  Widget _buildAccordionSection({
+    required String contextId,
+    required List<NutritionistTipsModel> tips,
+  }) {
+    final contextName = _getContextName(contextId);
+    final isExpanded = _selectedContextId == contextId;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppTheme.complexCardBorder, width: 1),
+      ),
+      child: Theme(
+        data: Theme.of(context).copyWith(
+          dividerColor: Colors.transparent,
+          splashColor: Colors.transparent,
+          highlightColor: Colors.transparent,
+        ),
+        child: ExpansionTile(
+          key: Key('${contextId}_$isExpanded'),
+          initiallyExpanded: isExpanded,
+          onExpansionChanged: (expanded) {
+            setState(() {
+              _selectedContextId = expanded ? contextId : '';
+            });
+          },
+          title: Text(
+            contextName,
+            style: TextStyles.cardBodyText.copyWith(
+              color: Colors.black87,
+              fontWeight: FontWeight.w500,
             ),
           ),
-        ),
-        const SizedBox(height: 8),
-        Align(
-          alignment: Alignment.centerLeft,
-          child: IconButton(
-            onPressed: () => Navigator.pop(context),
-            icon: const Icon(
-              Icons.arrow_back_ios_new_rounded,
-              size: 20,
-            ),
-            splashRadius: 20,
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
+          trailing: Icon(
+            isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+            color: Colors.black54,
+            size: 20,
           ),
-        ),
-        const SizedBox(height: 8),
-        Align(
-          alignment: Alignment.centerLeft,
-          child: const Text(
-            'Alimentos indicados pela nutricionista para os contextos',
-            style: TextStyles.pageTitle,
-            textAlign: TextAlign.left,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
           ),
+          collapsedShape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+          childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+          children: [
+            if (tips.isEmpty)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8.0),
+                child: Text(
+                  'Nenhuma dica para este contexto.',
+                  style: TextStyle(fontSize: 13, color: Colors.grey),
+                ),
+              )
+            else
+              ...tips.map((tip) => _tipCard(tip)),
+          ],
         ),
-      ],
+      ),
     );
   }
 
@@ -238,6 +231,23 @@ class _NutritionistTipsPageState extends State<NutritionistTipsPage> {
     );
   }
 
+  Widget _buildHeader() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 8),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: const Text(
+            'Alimentos indicados pela nutricionista para os contextos',
+            style: TextStyles.pageTitle,
+            textAlign: TextAlign.left,
+          ),
+        ),
+      ],
+    );
+  }
+
   String _getContextName(String contextId) {
     final contextNames = {
       'breakfast': 'Café da manhã',
@@ -254,68 +264,29 @@ class _NutritionistTipsPageState extends State<NutritionistTipsPage> {
     return contextNames[contextId] ?? contextId;
   }
 
-  Widget _buildAccordionSection({
-    required String contextId,
-    required List<NutritionistTipsModel> tips,
-  }) {
-    final contextName = _getContextName(contextId);
-    final isExpanded = _selectedContextId == contextId;
+  Future<void> _loadData() async {
+    setState(() => _isLoading = true);
+    await _controller.loadTips();
+    await _updateAccessState();
+    setState(() => _isLoading = false);
+  }
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.complexCardBorder, width: 1),
-      ),
-      child: Theme(
-        data: Theme.of(context).copyWith(
-          dividerColor: Colors.transparent,
-          splashColor: Colors.transparent,
-          highlightColor: Colors.transparent,
-        ),
-        child: ExpansionTile(
-          key: Key('${contextId}_$isExpanded'),
-          initiallyExpanded: isExpanded,
-          onExpansionChanged: (expanded) {
-            setState(() {
-              _selectedContextId = expanded ? contextId : '';
-            });
-          },
-          title: Text(
-            contextName,
-            style: TextStyles.cardBodyText.copyWith(
-              color: Colors.black87,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          trailing: Icon(
-            isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-            color: Colors.black54,
-            size: 20,
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          collapsedShape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-          childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-          children: [
-            if (tips.isEmpty)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 8.0),
-                child: Text(
-                  'Nenhuma dica para este contexto.',
-                  style: TextStyle(fontSize: 13, color: Colors.grey),
-                ),
-              )
-            else
-              ...tips.map((tip) => _tipCard(tip)),
-          ],
-        ),
-      ),
+  void _refresh() {
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _saveProgressIfNeeded() async {
+    if (_hasSavedProgress) return;
+
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId == null || userId.isEmpty) return;
+
+    _hasSavedProgress = true;
+
+    await ProgressRepository().saveProgress(
+      userId: userId,
+      theoryTitle: 'Dicas de nutricionista',
+      progress: 1.0,
     );
   }
 
@@ -384,6 +355,13 @@ class _NutritionistTipsPageState extends State<NutritionistTipsPage> {
           ],
         ),
       ),
+    );
+  }
+
+  Future<void> _updateAccessState() async {
+    final tipIds = _controller.tips.map((tip) => tip.id).toList();
+    await NutritionistTipsAccessService.canAccessGames(
+      allTipIds: tipIds,
     );
   }
 }
